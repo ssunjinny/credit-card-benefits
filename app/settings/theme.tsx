@@ -9,7 +9,9 @@ import {
   type Theme,
   type ThemeKey,
 } from '@/features/theme'
-import { Card, Icon, Pressable, ProgressBar, Screen, Text } from '@/ui'
+import { Icon, Pressable, Screen } from '@/ui'
+
+const SWATCH_SIZE = 28
 
 const ThemeSettingsScreen = () => {
   const theme = useTheme()
@@ -25,12 +27,9 @@ const ThemeSettingsScreen = () => {
   return (
     <Screen edges={['bottom']}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-        <Text variant="callout" tone="secondary" style={styles.intro}>
-          Pick the mood that fits. Changes apply instantly.
-        </Text>
         <View style={styles.grid}>
           {themeList.map((option) => (
-            <ThemePreview
+            <ThemePalette
               key={option.key}
               theme={option}
               selected={option.key === themeKey}
@@ -43,65 +42,48 @@ const ThemeSettingsScreen = () => {
   )
 }
 
-type ThemePreviewProps = {
+type ThemePaletteProps = {
   theme: Theme
   selected: boolean
   onPress: () => void
 }
 
-const ThemePreview = ({ theme, selected, onPress }: ThemePreviewProps) => {
+const ThemePalette = ({ theme, selected, onPress }: ThemePaletteProps) => {
   const ambient = useTheme()
   const styles = useMemo(() => createStyles(ambient), [ambient])
 
-  const previewBackground = theme.colors.surface.canvas
-  const previewSurface = theme.colors.surface.cardElevated
-  const previewLabel = theme.colors.label.primary
-  const previewSub = theme.colors.label.tertiary
-  const previewSignal = theme.colors.signal.base
-  const borderColor = selected ? ambient.colors.borderEmphasis : ambient.colors.border
+  const swatches = [
+    theme.colors.surface.canvas,
+    theme.colors.surface.cardElevated,
+    theme.colors.signal.base,
+    theme.colors.label.primary,
+  ]
 
   return (
-    <Pressable onPress={onPress} style={[styles.previewWrap, { borderColor }]}>
-      <View style={[styles.preview, { backgroundColor: previewBackground }]}>
-        <View
-          style={[
-            styles.previewCard,
-            {
-              backgroundColor: previewSurface,
-              borderRadius: theme.radii.lg,
-            },
-          ]}
-        >
-          <Text
-            variant="caption"
-            style={{ color: previewSub }}
-          >
-            CAPTURED
-          </Text>
-          <Text variant="display" style={{ color: previewSignal }}>
-            $597
-          </Text>
-          <View style={styles.previewBar}>
-            <View
-              style={[
-                styles.previewBarTrack,
-                { backgroundColor: theme.colors.surface.inset },
-              ]}
-            >
-              <View
-                style={[
-                  styles.previewBarFill,
-                  { backgroundColor: previewSignal },
-                ]}
-              />
-            </View>
-          </View>
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.tile,
+        { backgroundColor: theme.colors.surface.cardElevated },
+        selected && {
+          borderColor: ambient.colors.signal.base,
+          borderWidth: 2,
+        },
+      ]}
+    >
+      <View style={styles.swatches}>
+        {swatches.map((color, index) => (
+          <View
+            key={index}
+            style={[styles.swatch, { backgroundColor: color }]}
+          />
+        ))}
+      </View>
+      {selected ? (
+        <View style={styles.check}>
+          <Icon name="checkmark.circle.fill" size={22} tone="signal" />
         </View>
-      </View>
-      <View style={styles.previewMeta}>
-        <Text variant="headline">{theme.name}</Text>
-        {selected ? <Icon name="checkmark.circle.fill" size={18} tone="signal" /> : null}
-      </View>
+      ) : null}
     </Pressable>
   )
 }
@@ -112,52 +94,39 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     content: {
       paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
       paddingBottom: theme.spacing.xxxl,
-      gap: theme.spacing.lg,
-    },
-    intro: {
-      paddingHorizontal: theme.spacing.xs,
     },
     grid: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       gap: theme.spacing.md,
     },
-    previewWrap: {
+    tile: {
       flexBasis: '47%',
       flexGrow: 1,
+      aspectRatio: 1.4,
       borderRadius: theme.radii.lg,
       borderWidth: StyleSheet.hairlineWidth,
-      overflow: 'hidden',
+      borderColor: theme.colors.border,
+      padding: theme.spacing.lg,
+      justifyContent: 'center',
     },
-    preview: {
-      padding: theme.spacing.base,
-      borderTopLeftRadius: theme.radii.lg,
-      borderTopRightRadius: theme.radii.lg,
-    },
-    previewCard: {
-      padding: theme.spacing.base,
-      gap: theme.spacing.xs,
-    },
-    previewBar: {
-      marginTop: theme.spacing.sm,
-    },
-    previewBarTrack: {
-      height: 6,
-      borderRadius: 3,
-      overflow: 'hidden',
-    },
-    previewBarFill: {
-      width: '66%',
-      height: '100%',
-      borderRadius: 3,
-    },
-    previewMeta: {
-      paddingHorizontal: theme.spacing.base,
-      paddingVertical: theme.spacing.sm,
+    swatches: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      backgroundColor: theme.colors.surface.card,
+      gap: theme.spacing.sm,
+      justifyContent: 'center',
+    },
+    swatch: {
+      width: SWATCH_SIZE,
+      height: SWATCH_SIZE,
+      borderRadius: SWATCH_SIZE / 2,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: 'rgba(0,0,0,0.08)',
+    },
+    check: {
+      position: 'absolute',
+      top: theme.spacing.sm,
+      right: theme.spacing.sm,
     },
   })

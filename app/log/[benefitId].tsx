@@ -253,6 +253,7 @@ const createStyles = (theme: Theme) =>
       paddingVertical: theme.spacing.base,
       fontSize: 17,
       lineHeight: 22,
+      fontFamily: 'Satoshi-Regular',
     },
     noteInput: {
       minHeight: 80,
@@ -269,7 +270,7 @@ const createStyles = (theme: Theme) =>
     amountInput: {
       flex: 1,
       fontSize: 34,
-      fontWeight: '600',
+      fontFamily: 'GeistMono_600SemiBold',
       paddingVertical: theme.spacing.base,
     },
     hint: {

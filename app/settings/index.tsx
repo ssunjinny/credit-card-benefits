@@ -53,9 +53,21 @@ const SettingsScreen = () => {
               <View style={styles.linkRow}>
                 <Text variant="body">Theme</Text>
                 <View style={styles.linkRight}>
-                  <Text variant="body" tone="tertiary">
-                    {themes[themeKey].name}
-                  </Text>
+                  <View style={styles.swatchPair}>
+                    <View
+                      style={[
+                        styles.swatch,
+                        { backgroundColor: themes[themeKey].colors.surface.canvas },
+                      ]}
+                    />
+                    <View
+                      style={[
+                        styles.swatch,
+                        styles.swatchOverlap,
+                        { backgroundColor: themes[themeKey].colors.signal.base },
+                      ]}
+                    />
+                  </View>
                   <Icon name="chevron.right" size={14} tone="tertiary" />
                 </View>
               </View>
@@ -153,6 +165,20 @@ const createStyles = (theme: Theme) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: theme.spacing.sm,
+    },
+    swatchPair: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    swatch: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.borderEmphasis,
+    },
+    swatchOverlap: {
+      marginLeft: -6,
     },
     actionRow: {
       paddingHorizontal: theme.spacing.lg,

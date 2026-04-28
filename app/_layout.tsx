@@ -6,6 +6,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useFonts } from 'expo-font'
+import {
+  GeistMono_400Regular,
+  GeistMono_500Medium,
+  GeistMono_600SemiBold,
+  GeistMono_700Bold,
+} from '@expo-google-fonts/geist-mono'
 
 import {
   ThemeProvider,
@@ -23,6 +30,16 @@ const RootStack = () => {
   const hasOnboarded = useAppStore((s) => s.hasOnboarded)
   const router = useRouter()
   const segments = useSegments()
+  const [fontsLoaded] = useFonts({
+    'Satoshi-Regular': require('../assets/fonts/Satoshi-Regular.otf'),
+    'Satoshi-Medium': require('../assets/fonts/Satoshi-Medium.otf'),
+    'Satoshi-Bold': require('../assets/fonts/Satoshi-Bold.otf'),
+    'Satoshi-Black': require('../assets/fonts/Satoshi-Black.otf'),
+    GeistMono_400Regular,
+    GeistMono_500Medium,
+    GeistMono_600SemiBold,
+    GeistMono_700Bold,
+  })
 
   useEffect(() => {
     initialize()
@@ -38,7 +55,7 @@ const RootStack = () => {
     }
   }, [isLoaded, hasOnboarded, segments, router])
 
-  if (!themeReady || !isLoaded) {
+  if (!themeReady || !isLoaded || !fontsLoaded) {
     return <BootSkeleton />
   }
 
@@ -48,21 +65,24 @@ const RootStack = () => {
         headerStyle: { backgroundColor: theme.colors.surface.canvas },
         headerShadowVisible: false,
         headerTintColor: theme.colors.signal.base,
-        headerTitleStyle: { color: theme.colors.label.primary },
+        headerTitleStyle: {
+          color: theme.colors.label.primary,
+          fontFamily: 'Satoshi-Medium',
+          fontSize: 17,
+        },
+        headerBackButtonDisplayMode: 'minimal',
+        headerBackTitle: '',
         contentStyle: { backgroundColor: theme.colors.surface.canvas },
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{ headerLargeTitle: true, title: 'Benefits' }}
-      />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="benefit/[id]" options={{ title: '' }} />
       <Stack.Screen
         name="log/[benefitId]"
         options={{ presentation: 'modal', title: 'Capture a use' }}
       />
-      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
       <Stack.Screen name="settings/theme" options={{ title: 'Theme' }} />
     </Stack>
   )

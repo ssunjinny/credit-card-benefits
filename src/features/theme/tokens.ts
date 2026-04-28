@@ -93,50 +93,93 @@ export type Theme = {
   motion: MotionScale
 }
 
+export const fontFamily = {
+  satoshiRegular: 'Satoshi-Regular',
+  satoshiMedium: 'Satoshi-Medium',
+  satoshiBold: 'Satoshi-Bold',
+  satoshiBlack: 'Satoshi-Black',
+  monoRegular: 'GeistMono_400Regular',
+  monoMedium: 'GeistMono_500Medium',
+  monoSemiBold: 'GeistMono_600SemiBold',
+  monoBold: 'GeistMono_700Bold',
+} as const
+
 export const typography: TypographyScale = {
   hero: {
+    fontFamily: fontFamily.monoSemiBold,
     fontSize: 56,
     lineHeight: 60,
-    fontWeight: '600',
-    letterSpacing: -1.5,
+    letterSpacing: -1.8,
     fontVariant: ['tabular-nums'],
   },
   display: {
+    fontFamily: fontFamily.monoSemiBold,
     fontSize: 34,
     lineHeight: 38,
-    fontWeight: '600',
     letterSpacing: -0.8,
     fontVariant: ['tabular-nums'],
   },
   largeTitle: {
+    fontFamily: fontFamily.satoshiBold,
     fontSize: 34,
     lineHeight: 41,
-    fontWeight: '700',
     letterSpacing: -0.5,
   },
   title1: {
+    fontFamily: fontFamily.satoshiBold,
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: '600',
     letterSpacing: -0.3,
   },
-  title2: { fontSize: 22, lineHeight: 28, fontWeight: '600' },
-  title3: { fontSize: 20, lineHeight: 25, fontWeight: '600' },
-  headline: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
-  body: { fontSize: 17, lineHeight: 24, fontWeight: '400' },
-  callout: { fontSize: 16, lineHeight: 22, fontWeight: '400' },
-  subheadline: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
-  footnote: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  title2: {
+    fontFamily: fontFamily.satoshiMedium,
+    fontSize: 22,
+    lineHeight: 28,
+  },
+  title3: {
+    fontFamily: fontFamily.satoshiMedium,
+    fontSize: 20,
+    lineHeight: 25,
+  },
+  headline: {
+    fontFamily: fontFamily.satoshiMedium,
+    fontSize: 17,
+    lineHeight: 22,
+  },
+  body: {
+    fontFamily: fontFamily.satoshiRegular,
+    fontSize: 17,
+    lineHeight: 24,
+  },
+  callout: {
+    fontFamily: fontFamily.satoshiRegular,
+    fontSize: 16,
+    lineHeight: 22,
+  },
+  subheadline: {
+    fontFamily: fontFamily.satoshiRegular,
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  footnote: {
+    fontFamily: fontFamily.satoshiRegular,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   caption: {
+    fontFamily: fontFamily.satoshiMedium,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '500',
     letterSpacing: 0.3,
   },
-  listValue: { fontSize: 17, fontWeight: '500', fontVariant: ['tabular-nums'] },
+  listValue: {
+    fontFamily: fontFamily.monoMedium,
+    fontSize: 17,
+    fontVariant: ['tabular-nums'],
+  },
   sectionHeader: {
+    fontFamily: fontFamily.satoshiMedium,
     fontSize: 13,
-    fontWeight: '500',
     letterSpacing: 0.6,
     textTransform: 'uppercase',
   },

@@ -9,7 +9,7 @@ import { HeroCard } from '@/features/benefits/components/HeroCard'
 import { StatChips } from '@/features/benefits/components/StatChips'
 import { useTheme, type Theme } from '@/features/theme'
 import { useAppStore } from '@/store/useAppStore'
-import { Card, Icon, Pressable, Text } from '@/ui'
+import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
 const HomeScreen = () => {
   const theme = useTheme()
@@ -20,46 +20,53 @@ const HomeScreen = () => {
 
   if (!isLoaded) {
     return (
-      <ScrollView contentContainerStyle={styles.content}>
-        <BenefitListSkeleton />
-      </ScrollView>
+      <Screen>
+        <ScrollView contentContainerStyle={styles.content}>
+          <BenefitListSkeleton />
+        </ScrollView>
+      </Screen>
     )
   }
 
   return (
-    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-      <HeroCard
-        totalCaptured={overview.totalCaptured}
-        annualFee={overview.annualFee}
-        utilization={overview.utilization}
-        remaining={overview.remaining}
-      />
+    <Screen>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.topBar}>
+          <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
+            <Icon name="gearshape" size={22} tone="tertiary" />
+          </Pressable>
+        </View>
 
-      <View style={styles.spacer} />
-      <StatChips counts={overview.counts} />
+        <HeroCard
+          totalCaptured={overview.totalCaptured}
+          annualFee={overview.annualFee}
+          utilization={overview.utilization}
+          remaining={overview.remaining}
+        />
 
-      <View style={styles.sectionHeader}>
-        <Text variant="sectionHeader" tone="tertiary">
-          Benefits
-        </Text>
-        <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
-          <Icon name="gearshape" size={20} tone="tertiary" />
-        </Pressable>
-      </View>
+        <View style={styles.spacer} />
+        <StatChips counts={overview.counts} />
 
-      {!overview.hasAnyLogs ? <FirstCaptureNudge /> : null}
+        {!overview.hasAnyLogs ? <FirstCaptureNudge /> : null}
 
-      <Card padded={false}>
-        {overview.benefits.map((benefit, index) => (
-          <BenefitRow
-            key={benefit.id}
-            benefit={benefit}
-            isLast={index === overview.benefits.length - 1}
-            onPress={() => router.push(`/benefit/${benefit.id}`)}
-          />
-        ))}
-      </Card>
-    </ScrollView>
+        <View style={styles.sectionHeader}>
+          <Text variant="sectionHeader" tone="tertiary">
+            Benefits
+          </Text>
+        </View>
+
+        <Card padded={false}>
+          {overview.benefits.map((benefit, index) => (
+            <BenefitRow
+              key={benefit.id}
+              benefit={benefit}
+              isLast={index === overview.benefits.length - 1}
+              onPress={() => router.push(`/benefit/${benefit.id}`)}
+            />
+          ))}
+        </Card>
+      </ScrollView>
+    </Screen>
   )
 }
 
@@ -88,14 +95,16 @@ const createStyles = (theme: Theme) =>
       paddingBottom: theme.spacing.xxxl,
       gap: theme.spacing.md,
     },
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      paddingTop: theme.spacing.sm,
+    },
     spacer: {
       height: theme.spacing.xs,
     },
     sectionHeader: {
       marginTop: theme.spacing.xl,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
       paddingHorizontal: theme.spacing.xs,
     },
     nudge: {
