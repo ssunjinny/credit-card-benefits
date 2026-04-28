@@ -1,37 +1,33 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useBenefitStore } from '../src/store/useBenefitStore';
-import { getOnboarded } from '../src/store/storage';
 import { colors } from '../src/constants/theme';
 
 export default function RootLayout() {
   const initialize = useBenefitStore((s) => s.initialize);
   const isLoaded = useBenefitStore((s) => s.isLoaded);
-  const [onboardingChecked, setOnboardingChecked] = useState(false);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const onboarded = useBenefitStore((s) => s.onboarded);
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
     initialize();
-    getOnboarded().then((done) => {
-      setNeedsOnboarding(!done);
-      setOnboardingChecked(true);
-    });
   }, [initialize]);
 
   useEffect(() => {
-    if (!onboardingChecked || !isLoaded) return;
+    if (!isLoaded) return;
     const inOnboarding = segments[0] === 'onboarding';
-    if (needsOnboarding && !inOnboarding) {
+    if (!onboarded && !inOnboarding) {
       router.replace('/onboarding');
+    } else if (onboarded && inOnboarding) {
+      router.replace('/');
     }
-  }, [onboardingChecked, isLoaded, needsOnboarding, segments, router]);
+  }, [isLoaded, onboarded, segments, router]);
 
-  if (!isLoaded || !onboardingChecked) {
+  if (!isLoaded) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator />

@@ -1,19 +1,17 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { setOnboarded } from '../src/store/storage';
+import { useBenefitStore } from '../src/store/useBenefitStore';
 import { colors, radius, spacing } from '../src/constants/theme';
 
 export default function OnboardingScreen() {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
+  const completeOnboarding = useBenefitStore((s) => s.completeOnboarding);
 
   const onStart = async () => {
-    await Haptics.selectionAsync();
-    await setOnboarded();
-    router.replace('/');
+    Haptics.selectionAsync();
+    await completeOnboarding();
   };
 
   return (

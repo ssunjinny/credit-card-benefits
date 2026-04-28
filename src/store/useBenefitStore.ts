@@ -1,13 +1,20 @@
 import { create } from 'zustand';
 import { BenefitLog, BenefitWithProgress } from '../types';
 import { BENEFITS, getBenefitById } from '../constants/benefits';
-import { loadAppState, saveAppState } from './storage';
+import {
+  getOnboarded,
+  loadAppState,
+  saveAppState,
+  setOnboarded as persistOnboarded,
+} from './storage';
 
 interface BenefitStore {
   logs: BenefitLog[];
   lastResetYear: number;
   isLoaded: boolean;
+  onboarded: boolean;
   initialize: () => Promise<void>;
+  completeOnboarding: () => Promise<void>;
   addLog: (log: BenefitLog) => Promise<void>;
   deleteLog: (logId: string) => Promise<void>;
   resetYear: () => Promise<void>;
@@ -26,14 +33,15 @@ export const useBenefitStore = create<BenefitStore>((set, get) => ({
   logs: [],
   lastResetYear: currentYear(),
   isLoaded: false,
+  onboarded: false,
 
   initialize: async () => {
-    const stored = await loadAppState();
+    const [stored, onboarded] = await Promise.all([loadAppState(), getOnboarded()]);
     const year = currentYear();
     if (!stored) {
       const fresh = { logs: [], lastResetYear: year };
       await saveAppState(fresh);
-      set({ logs: [], lastResetYear: year, isLoaded: true });
+      set({ logs: [], lastResetYear: year, onboarded, isLoaded: true });
       return;
     }
     if (year > stored.lastResetYear) {
@@ -45,10 +53,20 @@ export const useBenefitStore = create<BenefitStore>((set, get) => ({
       const keptLogs = stored.logs.filter((l) => perUseIds.has(l.benefitId));
       const next = { logs: keptLogs, lastResetYear: year };
       await saveAppState(next);
-      set({ ...next, isLoaded: true });
+      set({ ...next, onboarded, isLoaded: true });
       return;
     }
-    set({ logs: stored.logs, lastResetYear: stored.lastResetYear, isLoaded: true });
+    set({
+      logs: stored.logs,
+      lastResetYear: stored.lastResetYear,
+      onboarded,
+      isLoaded: true,
+    });
+  },
+
+  completeOnboarding: async () => {
+    await persistOnboarded();
+    set({ onboarded: true });
   },
 
   addLog: async (log) => {
