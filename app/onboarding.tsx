@@ -1,84 +1,56 @@
-import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
-import { useBenefitStore } from '../src/store/useBenefitStore';
-import { colors, radius, spacing } from '../src/constants/theme';
+import { useMemo } from 'react'
+import { StyleSheet, View } from 'react-native'
 
-export default function OnboardingScreen() {
-  const insets = useSafeAreaInsets();
-  const completeOnboarding = useBenefitStore((s) => s.completeOnboarding);
+import { useTheme, type Theme } from '@/features/theme'
+import { useAppStore } from '@/store/useAppStore'
+import { Button, Icon, Screen, Text } from '@/ui'
 
-  const onStart = async () => {
-    Haptics.selectionAsync();
-    await completeOnboarding();
-  };
+const OnboardingScreen = () => {
+  const theme = useTheme()
+  const styles = useMemo(() => createStyles(theme), [theme])
+  const completeOnboarding = useAppStore((s) => s.completeOnboarding)
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top + spacing.xxl, paddingBottom: insets.bottom + spacing.lg }]}>
-      <View style={styles.content}>
-        <Text style={styles.emoji}>💳</Text>
-        <Text style={styles.title}>Track every dollar of value</Text>
-        <Text style={styles.body}>
-          Log each time you use an AMEX Platinum benefit and watch your captured value climb toward
-          break-even on the $895 annual fee.
-        </Text>
-        <Text style={styles.body}>
-          Fixed credits, lounge visits, hotel perks — all in one place, resetting every January 1.
-        </Text>
+    <Screen>
+      <View style={styles.container}>
+        <View style={styles.body}>
+          <Icon name="creditcard.fill" size={56} tone="signal" />
+          <Text variant="title1" style={styles.title}>
+            A quiet ledger for an expensive card.
+          </Text>
+          <Text variant="callout" tone="secondary" style={styles.copy}>
+            Capture each time you use a Platinum benefit and watch the value climb toward break
+            even on the $895 fee.
+          </Text>
+          <Text variant="callout" tone="secondary" style={styles.copy}>
+            Credits, lounges, hotel perks. One place. Resets every January 1.
+          </Text>
+        </View>
+        <Button label="Begin" onPress={completeOnboarding} />
       </View>
-      <Pressable
-        onPress={onStart}
-        style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
-      >
-        <Text style={styles.buttonText}>Get Started</Text>
-      </Pressable>
-    </View>
-  );
+    </Screen>
+  )
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.xl,
-    justifyContent: 'space-between',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  emoji: {
-    fontSize: 64,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  body: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing.md,
-  },
-  button: {
-    backgroundColor: colors.blue,
-    borderRadius: radius.card,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  buttonPressed: {
-    opacity: 0.85,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-});
+export default OnboardingScreen
+
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      paddingHorizontal: theme.spacing.xl,
+      paddingBottom: theme.spacing.xl,
+      justifyContent: 'space-between',
+    },
+    body: {
+      flex: 1,
+      justifyContent: 'center',
+      gap: theme.spacing.lg,
+    },
+    title: {
+      marginTop: theme.spacing.lg,
+    },
+    copy: {
+      lineHeight: 24,
+    },
+  })

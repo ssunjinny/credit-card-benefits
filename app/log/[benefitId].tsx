@@ -1,296 +1,279 @@
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react'
 import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
-} from 'react-native';
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { useBenefitStore } from '../../src/store/useBenefitStore';
-import { getBenefitById } from '../../src/constants/benefits';
-import { colors, radius, shadow, spacing } from '../../src/constants/theme';
-import { formatCurrency } from '../../src/utils/calculations';
-import { BenefitLog } from '../../src/types';
+} from 'react-native'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
+import * as Haptics from 'expo-haptics'
 
-const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+import { findBenefit, computeBenefitProgress } from '@/features/benefits'
+import { useTheme, type Theme } from '@/features/theme'
+import { formatCurrency } from '@/lib/currency'
+import { isValidIsoDate, today, yesterday } from '@/lib/date'
+import { useAppStore } from '@/store/useAppStore'
+import { Card, Icon, Pressable, Screen, Text } from '@/ui'
+import type { BenefitLog } from '@/features/logs/types'
 
-export default function LogEntryScreen() {
-  const { benefitId } = useLocalSearchParams<{ benefitId: string }>();
-  const router = useRouter();
-  const benefit = getBenefitById(benefitId);
-  const addLog = useBenefitStore((s) => s.addLog);
-  const getProgress = useBenefitStore((s) => s.getBenefitWithProgress);
+const generateLogId = () =>
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
-  const today = toIsoDate(new Date());
-  const yesterday = toIsoDate(new Date(Date.now() - 86400000));
-  const [date, setDate] = useState<string>(today);
-  const [amount, setAmount] = useState<string>('');
-  const [note, setNote] = useState<string>('');
+const LogEntryScreen = () => {
+  const theme = useTheme()
+  const styles = useMemo(() => createStyles(theme), [theme])
+  const router = useRouter()
+  const { benefitId } = useLocalSearchParams<{ benefitId: string }>()
+  const benefit = findBenefit(benefitId)
+  const logs = useAppStore((state) => state.logs)
+  const addLog = useAppStore((state) => state.addLog)
 
-  const progress = useMemo(
-    () => (benefit ? getProgress(benefit.id) : null),
-    [benefit, getProgress]
-  );
+  const [date, setDate] = useState<string>(today())
+  const [amount, setAmount] = useState<string>('')
+  const [note, setNote] = useState<string>('')
 
   if (!benefit) {
     return (
-      <View style={styles.notFound}>
+      <Screen>
         <Stack.Screen options={{ title: 'Not found' }} />
-        <Text>Benefit not found.</Text>
-      </View>
-    );
+        <View style={styles.notFound}>
+          <Text variant="headline" tone="secondary">
+            That benefit isn’t one we know about.
+          </Text>
+        </View>
+      </Screen>
+    )
   }
 
+  const progress = computeBenefitProgress(benefit, logs)
   const remaining =
-    benefit.annualCap != null && progress
-      ? Math.max(0, benefit.annualCap - progress.currentYearUsed)
-      : null;
+    benefit.annualCap != null ? Math.max(0, benefit.annualCap - progress.used) : null
 
   const amountHint =
     benefit.category === 'fixed' && remaining != null
-      ? `Up to ${formatCurrency(remaining)} remaining`
-      : 'How much value did you get?';
+      ? `Up to ${formatCurrency(remaining)} remaining this year.`
+      : 'How much value did you actually receive?'
 
-  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date) && !isNaN(Date.parse(date));
+  const dateValid = isValidIsoDate(date)
+  const numericAmount = Number.parseFloat(amount)
+  const amountValid = Number.isFinite(numericAmount) && numericAmount > 0
+  const canSubmit = dateValid && amountValid
 
   const onSave = async () => {
-    const value = parseFloat(amount);
-    if (!isFinite(value) || value <= 0) {
-      Alert.alert('Invalid amount', 'Enter a dollar amount greater than zero.');
-      return;
-    }
-    if (!validDate) {
-      Alert.alert('Invalid date', 'Use YYYY-MM-DD format.');
-      return;
+    if (!canSubmit) {
+      Alert.alert('Check the entry', 'A valid date and dollar amount are required.')
+      return
     }
     const log: BenefitLog = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      id: generateLogId(),
       benefitId: benefit.id,
       date: new Date(date).toISOString(),
-      valueAmount: Math.round(value * 100) / 100,
+      valueAmount: Math.round(numericAmount * 100) / 100,
       note: note.trim() ? note.trim() : null,
-    };
-    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    await addLog(log);
-    router.back();
-  };
+    }
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    await addLog(log)
+    router.back()
+  }
+
+  const today_ = today()
+  const yesterday_ = yesterday()
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <Screen edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Log a Use',
+          title: 'Capture a use',
           headerLeft: () => (
-            <Pressable onPress={() => router.back()} hitSlop={10}>
-              <Text style={styles.headerLink}>Cancel</Text>
+            <Pressable onPress={() => router.back()} hitSlop={10} scaleOnPress={false}>
+              <Text variant="body" tone="signal">
+                Cancel
+              </Text>
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable onPress={onSave} hitSlop={10}>
-              <Text style={[styles.headerLink, styles.headerSave]}>Save</Text>
+            <Pressable
+              onPress={onSave}
+              disabled={!canSubmit}
+              hitSlop={10}
+              scaleOnPress={false}
+            >
+              <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
+                Save
+              </Text>
             </Pressable>
           ),
         }}
       />
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <View style={styles.benefitHeader}>
-          <Text style={styles.icon}>{benefit.icon}</Text>
-          <Text style={styles.benefitName}>{benefit.name}</Text>
-        </View>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.headline}>
+            <Icon name={benefit.symbol} size={36} tone="signal" />
+            <Text variant="title3">{benefit.name}</Text>
+          </View>
 
-        <Text style={styles.sectionLabel}>DATE</Text>
-        <View style={styles.dateRow}>
-          <DateChip label="Today" active={date === today} onPress={() => setDate(today)} />
-          <DateChip
-            label="Yesterday"
-            active={date === yesterday}
-            onPress={() => setDate(yesterday)}
-          />
-        </View>
-        <TextInput
-          style={[styles.input, !validDate && styles.inputError]}
-          value={date}
-          onChangeText={setDate}
-          placeholder="YYYY-MM-DD"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+          <Text variant="sectionHeader" tone="tertiary">
+            Date
+          </Text>
+          <View style={styles.chipRow}>
+            <DateChip
+              label="Today"
+              active={date === today_}
+              onPress={() => setDate(today_)}
+            />
+            <DateChip
+              label="Yesterday"
+              active={date === yesterday_}
+              onPress={() => setDate(yesterday_)}
+            />
+          </View>
+          <Card padded={false} style={styles.inputCard}>
+            <TextInput
+              value={date}
+              onChangeText={setDate}
+              placeholder="YYYY-MM-DD"
+              placeholderTextColor={theme.colors.label.tertiary}
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={[
+                styles.textInput,
+                { color: dateValid ? theme.colors.label.primary : theme.colors.danger.base },
+              ]}
+            />
+          </Card>
 
-        <Text style={styles.sectionLabel}>AMOUNT</Text>
-        <View style={styles.amountRow}>
-          <Text style={styles.dollarSign}>$</Text>
-          <TextInput
-            style={styles.amountInput}
-            value={amount}
-            onChangeText={setAmount}
-            placeholder="0"
-            keyboardType="decimal-pad"
-            autoFocus
-          />
-        </View>
-        <Text style={styles.hint}>{amountHint}</Text>
+          <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
+            Amount
+          </Text>
+          <Card padded={false} style={styles.amountCard}>
+            <Text variant="display" tone="tertiary" style={styles.dollar}>
+              $
+            </Text>
+            <TextInput
+              value={amount}
+              onChangeText={setAmount}
+              placeholder="0"
+              placeholderTextColor={theme.colors.label.tertiary}
+              keyboardType="decimal-pad"
+              autoFocus
+              style={[styles.amountInput, { color: theme.colors.label.primary }]}
+            />
+          </Card>
+          <Text variant="footnote" tone="tertiary" style={styles.hint}>
+            {amountHint}
+          </Text>
 
-        <Text style={styles.sectionLabel}>NOTE (OPTIONAL)</Text>
-        <TextInput
-          style={[styles.input, styles.noteInput]}
-          value={note}
-          onChangeText={setNote}
-          placeholder="e.g. Delta lounge at JFK"
-          multiline
-        />
-
-        <Pressable
-          onPress={onSave}
-          style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
-        >
-          <Text style={styles.saveButtonText}>Save</Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
+          <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
+            Note (optional)
+          </Text>
+          <Card padded={false} style={styles.inputCard}>
+            <TextInput
+              value={note}
+              onChangeText={setNote}
+              placeholder="e.g. Centurion Lounge, JFK"
+              placeholderTextColor={theme.colors.label.tertiary}
+              multiline
+              style={[styles.textInput, styles.noteInput, { color: theme.colors.label.primary }]}
+            />
+          </Card>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Screen>
+  )
 }
 
-interface ChipProps {
-  label: string;
-  active: boolean;
-  onPress: () => void;
+type DateChipProps = {
+  label: string
+  active: boolean
+  onPress: () => void
 }
 
-function DateChip({ label, active, onPress }: ChipProps) {
+const DateChip = ({ label, active, onPress }: DateChipProps) => {
+  const theme = useTheme()
+  const styles = useMemo(() => createStyles(theme), [theme])
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.dateChip, active && styles.dateChipActive]}
+      style={[styles.chip, active && { backgroundColor: theme.colors.signal.base }]}
     >
-      <Text style={[styles.dateChipText, active && styles.dateChipTextActive]}>
+      <Text variant="footnote" tone={active ? 'onSignal' : 'primary'}>
         {label}
       </Text>
     </Pressable>
-  );
+  )
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  scroll: { flex: 1 },
-  content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl * 2,
-  },
-  notFound: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  headerLink: {
-    color: colors.blue,
-    fontSize: 16,
-    paddingHorizontal: spacing.sm,
-  },
-  headerSave: {
-    fontWeight: '600',
-  },
-  benefitHeader: {
-    alignItems: 'center',
-    marginBottom: spacing.lg,
-  },
-  icon: { fontSize: 44 },
-  benefitName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    marginTop: spacing.xs,
-  },
-  sectionLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textTertiary,
-    letterSpacing: 0.5,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  input: {
-    backgroundColor: colors.card,
-    borderRadius: radius.card,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: 16,
-    color: colors.textPrimary,
-    ...shadow.card,
-  },
-  inputError: {
-    borderColor: colors.red,
-    borderWidth: 1,
-  },
-  noteInput: {
-    minHeight: 72,
-    textAlignVertical: 'top',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  dateChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    backgroundColor: colors.card,
-    borderRadius: radius.pill,
-    ...shadow.card,
-  },
-  dateChipActive: {
-    backgroundColor: colors.blue,
-  },
-  dateChipText: {
-    fontSize: 14,
-    color: colors.textPrimary,
-    fontWeight: '500',
-  },
-  dateChipTextActive: {
-    color: '#fff',
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    borderRadius: radius.card,
-    paddingHorizontal: spacing.md,
-    ...shadow.card,
-  },
-  dollarSign: {
-    fontSize: 28,
-    color: colors.textTertiary,
-    marginRight: spacing.xs,
-  },
-  amountInput: {
-    flex: 1,
-    fontSize: 28,
-    fontWeight: '600',
-    paddingVertical: spacing.md,
-    color: colors.textPrimary,
-  },
-  hint: {
-    fontSize: 13,
-    color: colors.textTertiary,
-    marginTop: spacing.xs,
-  },
-  saveButton: {
-    backgroundColor: colors.blue,
-    borderRadius: radius.card,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    marginTop: spacing.xl,
-  },
-  saveButtonPressed: {
-    opacity: 0.85,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 17,
-    fontWeight: '600',
-  },
-});
+export default LogEntryScreen
+
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    flex: { flex: 1 },
+    content: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingBottom: theme.spacing.xxxl,
+      gap: theme.spacing.sm,
+    },
+    notFound: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: theme.spacing.lg,
+    },
+    headline: {
+      alignItems: 'center',
+      paddingVertical: theme.spacing.lg,
+      gap: theme.spacing.sm,
+    },
+    sectionGap: {
+      marginTop: theme.spacing.lg,
+    },
+    chipRow: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+      marginVertical: theme.spacing.sm,
+    },
+    chip: {
+      paddingHorizontal: theme.spacing.base,
+      paddingVertical: theme.spacing.sm,
+      backgroundColor: theme.colors.surface.card,
+      borderRadius: theme.radii.pill,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: theme.colors.border,
+    },
+    inputCard: {
+      paddingHorizontal: theme.spacing.base,
+    },
+    textInput: {
+      paddingVertical: theme.spacing.base,
+      fontSize: 17,
+      lineHeight: 22,
+    },
+    noteInput: {
+      minHeight: 80,
+      textAlignVertical: 'top',
+    },
+    amountCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+    },
+    dollar: {
+      marginRight: theme.spacing.xs,
+    },
+    amountInput: {
+      flex: 1,
+      fontSize: 34,
+      fontWeight: '600',
+      paddingVertical: theme.spacing.base,
+    },
+    hint: {
+      marginTop: theme.spacing.xs,
+      paddingHorizontal: theme.spacing.xs,
+    },
+  })

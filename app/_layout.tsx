@@ -1,69 +1,113 @@
-import React, { useEffect } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Stack, useRouter, useSegments } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useBenefitStore } from '../src/store/useBenefitStore';
-import { colors } from '../src/constants/theme';
+import 'react-native-gesture-handler'
 
-export default function RootLayout() {
-  const initialize = useBenefitStore((s) => s.initialize);
-  const isLoaded = useBenefitStore((s) => s.isLoaded);
-  const onboarded = useBenefitStore((s) => s.onboarded);
-  const router = useRouter();
-  const segments = useSegments();
+import { useEffect } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import { Stack, useRouter, useSegments } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
+
+import {
+  ThemeProvider,
+  useTheme,
+  useThemeReady,
+} from '@/features/theme'
+import { Skeleton } from '@/ui'
+import { useAppStore } from '@/store/useAppStore'
+
+const RootStack = () => {
+  const theme = useTheme()
+  const themeReady = useThemeReady()
+  const initialize = useAppStore((s) => s.initialize)
+  const isLoaded = useAppStore((s) => s.isLoaded)
+  const hasOnboarded = useAppStore((s) => s.hasOnboarded)
+  const router = useRouter()
+  const segments = useSegments()
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    initialize()
+  }, [initialize])
 
   useEffect(() => {
-    if (!isLoaded) return;
-    const inOnboarding = segments[0] === 'onboarding';
-    if (!onboarded && !inOnboarding) {
-      router.replace('/onboarding');
-    } else if (onboarded && inOnboarding) {
-      router.replace('/');
+    if (!isLoaded) return
+    const inOnboarding = segments[0] === 'onboarding'
+    if (!hasOnboarded && !inOnboarding) {
+      router.replace('/onboarding')
+    } else if (hasOnboarded && inOnboarding) {
+      router.replace('/')
     }
-  }, [isLoaded, onboarded, segments, router]);
+  }, [isLoaded, hasOnboarded, segments, router])
 
-  if (!isLoaded) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator />
-      </View>
-    );
+  if (!themeReady || !isLoaded) {
+    return <BootSkeleton />
   }
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="dark" />
-      <Stack
-        screenOptions={{
-          headerStyle: { backgroundColor: colors.background },
-          headerShadowVisible: false,
-          headerTintColor: colors.blue,
-          contentStyle: { backgroundColor: colors.background },
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="benefit/[id]" options={{ title: '' }} />
-        <Stack.Screen
-          name="log/[benefitId]"
-          options={{ presentation: 'modal', title: 'Log a Use' }}
-        />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-      </Stack>
-    </SafeAreaProvider>
-  );
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: theme.colors.surface.canvas },
+        headerShadowVisible: false,
+        headerTintColor: theme.colors.signal.base,
+        headerTitleStyle: { color: theme.colors.label.primary },
+        contentStyle: { backgroundColor: theme.colors.surface.canvas },
+      }}
+    >
+      <Stack.Screen
+        name="index"
+        options={{ headerLargeTitle: true, title: 'Benefits' }}
+      />
+      <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+      <Stack.Screen name="benefit/[id]" options={{ title: '' }} />
+      <Stack.Screen
+        name="log/[benefitId]"
+        options={{ presentation: 'modal', title: 'Capture a use' }}
+      />
+      <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+      <Stack.Screen name="settings/theme" options={{ title: 'Theme' }} />
+    </Stack>
+  )
 }
 
+const BootSkeleton = () => {
+  const theme = useTheme()
+  return (
+    <View style={[styles.bootContainer, { backgroundColor: theme.colors.surface.canvas }]}>
+      <View style={styles.bootStack}>
+        <Skeleton width={140} height={20} />
+        <Skeleton width="100%" height={180} radius={theme.radii.xl} />
+        <Skeleton width="100%" height={56} radius={theme.radii.lg} />
+      </View>
+    </View>
+  )
+}
+
+const RootLayout = () => {
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <ThemedStatusBar />
+          <RootStack />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  )
+}
+
+const ThemedStatusBar = () => {
+  const theme = useTheme()
+  return <StatusBar style={theme.isDark ? 'light' : 'dark'} />
+}
+
+export default RootLayout
+
 const styles = StyleSheet.create({
-  loading: {
+  bootContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
+    paddingHorizontal: 20,
+    paddingTop: 80,
   },
-});
+  bootStack: {
+    gap: 16,
+  },
+})
