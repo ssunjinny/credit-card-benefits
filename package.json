@@ -54,9 +54,6 @@
     "*.{ts,tsx,js,jsx}": [
       "oxlint --fix",
       "oxfmt"
-    ],
-    "*.{json,jsonc}": [
-      "oxfmt"
     ]
   }
 }
