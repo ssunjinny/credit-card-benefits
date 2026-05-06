@@ -1,11 +1,4 @@
-import {
-  motion,
-  radii,
-  shadowsLight,
-  spacing,
-  typography,
-  type Theme,
-} from '../tokens'
+import { motion, radii, shadowsLight, spacing, typography, type Theme } from '../tokens'
 
 export const cream: Theme = {
   key: 'cream',

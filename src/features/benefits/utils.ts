@@ -23,10 +23,7 @@ const statusFor = (used: number, cap: number | null): BenefitStatus => {
   return 'inProgress'
 }
 
-export const computeBenefitProgress = (
-  benefit: Benefit,
-  logs: BenefitLog[],
-): BenefitProgress => {
+export const computeBenefitProgress = (benefit: Benefit, logs: BenefitLog[]): BenefitProgress => {
   const relevant = filterRelevantLogs(logs, benefit)
   const used = sumLogValues(relevant)
   const cap = benefit.annualCap

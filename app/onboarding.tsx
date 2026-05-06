@@ -22,8 +22,8 @@ const OnboardingScreen = () => {
             Track what you own and what you owe. Watch the worth climb.
           </Text>
           <Text variant="callout" tone="secondary" style={styles.copy}>
-            Capture every credit card benefit you earn back. Some reset on January 1; some last
-            for life.
+            Capture every credit card benefit you earn back. Some reset on January 1; some last for
+            life.
           </Text>
         </View>
         <Button label="Begin" onPress={completeOnboarding} />

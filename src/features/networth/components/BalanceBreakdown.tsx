@@ -13,7 +13,10 @@ export type BalanceBreakdownProps = {
   totals: CategoryTotal[]
 }
 
-const orderedCategoriesForKind = (kind: AccountKind, totals: CategoryTotal[]): {
+const orderedCategoriesForKind = (
+  kind: AccountKind,
+  totals: CategoryTotal[],
+): {
   meta: CategoryMeta
   total: CategoryTotal
 }[] => {
@@ -36,9 +39,7 @@ export const BalanceBreakdown = ({ totals }: BalanceBreakdownProps) => {
   return (
     <View>
       {assets.length > 0 ? <BreakdownSection title="Assets" rows={assets} /> : null}
-      {liabilities.length > 0 ? (
-        <BreakdownSection title="Liabilities" rows={liabilities} />
-      ) : null}
+      {liabilities.length > 0 ? <BreakdownSection title="Liabilities" rows={liabilities} /> : null}
     </View>
   )
 }
@@ -63,10 +64,7 @@ const BreakdownSection = ({ title, rows }: BreakdownSectionProps) => {
       </View>
       <Card padded={false}>
         {rows.map(({ meta, total }, index) => (
-          <View
-            key={meta.key}
-            style={[styles.row, index < rows.length - 1 && styles.divider]}
-          >
+          <View key={meta.key} style={[styles.row, index < rows.length - 1 && styles.divider]}>
             <View style={styles.leading}>
               <Icon name={meta.symbol} size={20} tone="signal" />
             </View>

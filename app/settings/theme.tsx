@@ -2,13 +2,7 @@ import { useMemo } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import * as Haptics from 'expo-haptics'
 
-import {
-  themeList,
-  useSetTheme,
-  useTheme,
-  type Theme,
-  type ThemeKey,
-} from '@/features/theme'
+import { themeList, useSetTheme, useTheme, type Theme, type ThemeKey } from '@/features/theme'
 import { Icon, Pressable, Screen } from '@/ui'
 
 const SWATCH_SIZE = 28
@@ -73,10 +67,7 @@ const ThemePalette = ({ theme, selected, onPress }: ThemePaletteProps) => {
     >
       <View style={styles.swatches}>
         {swatches.map((color, index) => (
-          <View
-            key={index}
-            style={[styles.swatch, { backgroundColor: color }]}
-          />
+          <View key={index} style={[styles.swatch, { backgroundColor: color }]} />
         ))}
       </View>
       {selected ? (

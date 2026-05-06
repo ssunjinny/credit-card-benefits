@@ -9,15 +9,7 @@ import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { formatDateLabel } from '@/lib/date'
 import { useAppStore } from '@/store/useAppStore'
-import {
-  Button,
-  Card,
-  Icon,
-  Pressable,
-  ProgressBar,
-  Screen,
-  Text,
-} from '@/ui'
+import { Button, Card, Icon, Pressable, ProgressBar, Screen, Text } from '@/ui'
 
 const BenefitDetailScreen = () => {
   const theme = useTheme()
@@ -107,17 +99,8 @@ const BenefitDetailScreen = () => {
         {logs.length > 0 ? (
           <Card padded={false}>
             {logs.map((log, index) => (
-              <Pressable
-                key={log.id}
-                onLongPress={() => onDelete(log.id)}
-                scaleOnPress={false}
-              >
-                <View
-                  style={[
-                    styles.logRow,
-                    index < logs.length - 1 && styles.logDivider,
-                  ]}
-                >
+              <Pressable key={log.id} onLongPress={() => onDelete(log.id)} scaleOnPress={false}>
+                <View style={[styles.logRow, index < logs.length - 1 && styles.logDivider]}>
                   <View style={styles.logMain}>
                     <Text variant="listValue">{formatCurrency(log.valueAmount)}</Text>
                     <Text variant="footnote" tone="tertiary">

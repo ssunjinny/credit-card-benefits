@@ -3,11 +3,7 @@ import { useMemo } from 'react'
 import { useAppStore } from '@/store/useAppStore'
 
 import { ANNUAL_FEE, BENEFITS } from '../constants'
-import {
-  computeBenefitProgress,
-  remainingToBreakEven,
-  totalCapturedThisYear,
-} from '../utils'
+import { computeBenefitProgress, remainingToBreakEven, totalCapturedThisYear } from '../utils'
 import type { BenefitStatus, BenefitWithProgress } from '../types'
 
 const statusOrder: Record<BenefitStatus, number> = {

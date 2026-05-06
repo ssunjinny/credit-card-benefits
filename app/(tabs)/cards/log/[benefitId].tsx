@@ -15,12 +15,10 @@ import { findBenefit, computeBenefitProgress } from '@/features/benefits'
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { isValidIsoDate, today, yesterday } from '@/lib/date'
+import { generateId } from '@/lib/id'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 import type { BenefitLog } from '@/features/logs/types'
-
-const generateLogId = () =>
-  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
 const LogEntryScreen = () => {
   const theme = useTheme()
@@ -68,7 +66,7 @@ const LogEntryScreen = () => {
       return
     }
     const log: BenefitLog = {
-      id: generateLogId(),
+      id: generateId(),
       benefitId: benefit.id,
       date: new Date(date).toISOString(),
       valueAmount: Math.round(numericAmount * 100) / 100,
@@ -95,12 +93,7 @@ const LogEntryScreen = () => {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable
-              onPress={onSave}
-              disabled={!canSubmit}
-              hitSlop={10}
-              scaleOnPress={false}
-            >
+            <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
               <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
                 Save
               </Text>
@@ -122,11 +115,7 @@ const LogEntryScreen = () => {
             Date
           </Text>
           <View style={styles.chipRow}>
-            <DateChip
-              label="Today"
-              active={date === today_}
-              onPress={() => setDate(today_)}
-            />
+            <DateChip label="Today" active={date === today_} onPress={() => setDate(today_)} />
             <DateChip
               label="Yesterday"
               active={date === yesterday_}

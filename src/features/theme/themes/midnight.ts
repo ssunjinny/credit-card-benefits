@@ -1,11 +1,4 @@
-import {
-  motion,
-  radii,
-  shadowsNone,
-  spacing,
-  typography,
-  type Theme,
-} from '../tokens'
+import { motion, radii, shadowsNone, spacing, typography, type Theme } from '../tokens'
 
 export const midnight: Theme = {
   key: 'midnight',

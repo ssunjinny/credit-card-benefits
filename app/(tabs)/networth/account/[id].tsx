@@ -117,10 +117,7 @@ const AccountDetailScreen = () => {
                 scaleOnPress={false}
               >
                 <View
-                  style={[
-                    styles.historyRow,
-                    index < history.length - 1 && styles.historyDivider,
-                  ]}
+                  style={[styles.historyRow, index < history.length - 1 && styles.historyDivider]}
                 >
                   <View style={styles.historyMain}>
                     <Text variant="listValue">

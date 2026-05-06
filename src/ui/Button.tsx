@@ -48,8 +48,7 @@ export const Button = ({
           ? styles.secondary
           : styles.ghost
 
-  const tone =
-    variant === 'primary' ? 'onSignal' : variant === 'danger' ? 'onSignal' : 'primary'
+  const tone = variant === 'primary' ? 'onSignal' : variant === 'danger' ? 'onSignal' : 'primary'
 
   return (
     <Pressable

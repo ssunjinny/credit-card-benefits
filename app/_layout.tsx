@@ -1,3 +1,5 @@
+import 'react-native-get-random-values'
+
 import { useEffect } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
@@ -12,11 +14,7 @@ import {
   GeistMono_700Bold,
 } from '@expo-google-fonts/geist-mono'
 
-import {
-  ThemeProvider,
-  useTheme,
-  useThemeReady,
-} from '@/features/theme'
+import { ThemeProvider, useTheme, useThemeReady } from '@/features/theme'
 import { Skeleton } from '@/ui'
 import { useAppStore } from '@/store/useAppStore'
 

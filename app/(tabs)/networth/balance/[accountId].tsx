@@ -78,12 +78,7 @@ const RecordBalanceScreen = () => {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable
-              onPress={onSave}
-              disabled={!canSubmit}
-              hitSlop={10}
-              scaleOnPress={false}
-            >
+            <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
               <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
                 Save
               </Text>
@@ -155,11 +150,7 @@ const RecordBalanceScreen = () => {
               placeholder="e.g. After paycheck deposit"
               placeholderTextColor={theme.colors.label.tertiary}
               multiline
-              style={[
-                styles.textInput,
-                styles.noteInput,
-                { color: theme.colors.label.primary },
-              ]}
+              style={[styles.textInput, styles.noteInput, { color: theme.colors.label.primary }]}
             />
           </Card>
         </ScrollView>

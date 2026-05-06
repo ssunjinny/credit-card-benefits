@@ -40,11 +40,7 @@ const NetWorthScreen = () => {
     <Screen>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topBar}>
-          <Pressable
-            onPress={() => router.push('/settings')}
-            hitSlop={12}
-            scaleOnPress={false}
-          >
+          <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
             <Icon name="gearshape" size={22} tone="tertiary" />
           </Pressable>
           <Pressable

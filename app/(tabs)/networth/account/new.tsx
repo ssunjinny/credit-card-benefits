@@ -77,12 +77,7 @@ const AddAccountScreen = () => {
             </Pressable>
           ),
           headerRight: () => (
-            <Pressable
-              onPress={onSave}
-              disabled={!canSubmit}
-              hitSlop={10}
-              scaleOnPress={false}
-            >
+            <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
               <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
                 Save
               </Text>

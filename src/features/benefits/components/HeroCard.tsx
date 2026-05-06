@@ -15,12 +15,7 @@ export type HeroCardProps = {
 const statusLine = (remaining: number) =>
   remaining > 0 ? `${formatCurrency(remaining)} to break even` : 'Break even reached'
 
-export const HeroCard = ({
-  totalCaptured,
-  annualFee,
-  utilization,
-  remaining,
-}: HeroCardProps) => {
+export const HeroCard = ({ totalCaptured, annualFee, utilization, remaining }: HeroCardProps) => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
 

@@ -48,7 +48,10 @@ export const sumLatestForKind = (
 ) =>
   accounts
     .filter((account) => account.kind === kind)
-    .reduce((total, account) => total + (latestBalanceFor(account.id, balances)?.amountCents ?? 0), 0)
+    .reduce(
+      (total, account) => total + (latestBalanceFor(account.id, balances)?.amountCents ?? 0),
+      0,
+    )
 
 export const summarizeNetWorth = (
   accounts: Account[],

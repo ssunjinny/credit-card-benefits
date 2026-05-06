@@ -1,10 +1,6 @@
 import { useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useDerivedValue,
-  withSpring,
-} from 'react-native-reanimated'
+import Animated, { useAnimatedStyle, useDerivedValue, withSpring } from 'react-native-reanimated'
 
 import { useTheme, type Theme } from '@/features/theme'
 
@@ -19,9 +15,7 @@ export const ProgressBar = ({ percentage, height = 8, tone = 'signal' }: Progres
   const styles = useMemo(() => createStyles(theme, height, tone), [theme, height, tone])
 
   const clamped = Math.max(0, Math.min(100, percentage))
-  const target = useDerivedValue(() =>
-    withSpring(clamped, theme.motion.springSoft),
-  )
+  const target = useDerivedValue(() => withSpring(clamped, theme.motion.springSoft))
 
   const fillStyle = useAnimatedStyle(() => ({
     width: `${target.value}%`,
@@ -45,7 +39,6 @@ const createStyles = (theme: Theme, height: number, tone: 'signal' | 'neutral') 
     fill: {
       height: '100%',
       borderRadius: height / 2,
-      backgroundColor:
-        tone === 'signal' ? theme.colors.signal.base : theme.colors.label.tertiary,
+      backgroundColor: tone === 'signal' ? theme.colors.signal.base : theme.colors.label.tertiary,
     },
   })

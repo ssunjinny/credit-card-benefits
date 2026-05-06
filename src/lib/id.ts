@@ -1,2 +1,3 @@
-export const generateId = () =>
-  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+import { v4 as uuidv4 } from 'uuid'
+
+export const generateId = () => uuidv4()
