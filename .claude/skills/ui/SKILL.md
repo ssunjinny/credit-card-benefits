@@ -52,12 +52,12 @@ src/theme/
 
 ```typescript
 // WRONG
-import { colors } from "../theme/themes/cream";
-backgroundColor: colors.surface.canvas;
+import { colors } from '../theme/themes/cream'
+backgroundColor: colors.surface.canvas
 
 // RIGHT
-const { colors } = useTheme();
-backgroundColor: colors.surface.canvas;
+const { colors } = useTheme()
+backgroundColor: colors.surface.canvas
 ```
 
 Same applies to `typography`, `spacing`, `radii`, `shadows`. All flow through `useTheme()`.
@@ -77,43 +77,43 @@ Every theme exports an object matching this shape. New themes just satisfy this 
 
 ```typescript
 export type Theme = {
-  key: "cream" | "midnight" | "onyx" | "platinum";
-  name: string;
-  isDark: boolean;
+  key: 'cream' | 'midnight' | 'onyx' | 'platinum'
+  name: string
+  isDark: boolean
 
   colors: {
     surface: {
-      canvas: string;
-      card: string;
-      cardElevated: string;
-      inset: string;
-      deep: string;
-    };
+      canvas: string
+      card: string
+      cardElevated: string
+      inset: string
+      deep: string
+    }
     label: {
-      primary: string;
-      secondary: string;
-      tertiary: string;
-      quaternary: string;
-      onDark: string;
-    };
+      primary: string
+      secondary: string
+      tertiary: string
+      quaternary: string
+      onDark: string
+    }
     signal: {
-      base: string;
-      soft: string;
-      onSoft: string;
-    };
-    warning: { base: string; soft: string };
-    danger: { base: string; soft: string };
-    separator: string;
-    border: string;
-    borderEmphasis: string;
-  };
+      base: string
+      soft: string
+      onSoft: string
+    }
+    warning: { base: string; soft: string }
+    danger: { base: string; soft: string }
+    separator: string
+    border: string
+    borderEmphasis: string
+  }
 
-  typography: TypographyScale;
-  spacing: SpacingScale;
-  radii: RadiiScale;
-  shadows: ShadowScale;
-  motion: MotionScale;
-};
+  typography: TypographyScale
+  spacing: SpacingScale
+  radii: RadiiScale
+  shadows: ShadowScale
+  motion: MotionScale
+}
 ```
 
 ---
@@ -302,50 +302,50 @@ export const typography = {
   hero: {
     fontSize: 56,
     lineHeight: 60,
-    fontWeight: "600",
+    fontWeight: '600',
     letterSpacing: -1.5,
-    fontVariant: ["tabular-nums"],
+    fontVariant: ['tabular-nums'],
   },
   display: {
     fontSize: 34,
     lineHeight: 38,
-    fontWeight: "600",
+    fontWeight: '600',
     letterSpacing: -0.8,
-    fontVariant: ["tabular-nums"],
+    fontVariant: ['tabular-nums'],
   },
   largeTitle: {
     fontSize: 34,
     lineHeight: 41,
-    fontWeight: "700",
+    fontWeight: '700',
     letterSpacing: -0.5,
   },
   title1: {
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: "600",
+    fontWeight: '600',
     letterSpacing: -0.3,
   },
-  title2: { fontSize: 22, lineHeight: 28, fontWeight: "600" },
-  title3: { fontSize: 20, lineHeight: 25, fontWeight: "600" },
-  headline: { fontSize: 17, lineHeight: 22, fontWeight: "600" },
-  body: { fontSize: 17, lineHeight: 24, fontWeight: "400" },
-  callout: { fontSize: 16, lineHeight: 22, fontWeight: "400" },
-  subheadline: { fontSize: 15, lineHeight: 20, fontWeight: "400" },
-  footnote: { fontSize: 13, lineHeight: 18, fontWeight: "400" },
+  title2: { fontSize: 22, lineHeight: 28, fontWeight: '600' },
+  title3: { fontSize: 20, lineHeight: 25, fontWeight: '600' },
+  headline: { fontSize: 17, lineHeight: 22, fontWeight: '600' },
+  body: { fontSize: 17, lineHeight: 24, fontWeight: '400' },
+  callout: { fontSize: 16, lineHeight: 22, fontWeight: '400' },
+  subheadline: { fontSize: 15, lineHeight: 20, fontWeight: '400' },
+  footnote: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
   caption: {
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: "500",
+    fontWeight: '500',
     letterSpacing: 0.3,
   },
-  listValue: { fontSize: 17, fontWeight: "500", fontVariant: ["tabular-nums"] },
+  listValue: { fontSize: 17, fontWeight: '500', fontVariant: ['tabular-nums'] },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: "500",
+    fontWeight: '500',
     letterSpacing: 0.6,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
-};
+}
 ```
 
 **Font:** System font (San Francisco). Don't import custom fonts in v1. If/when you do, **Inter** or **Inter Tight** is the safe free choice; **Söhne** if you want to splurge.
@@ -371,7 +371,7 @@ export const spacing = {
   xxl: 32,
   xxxl: 48,
   huge: 72,
-};
+}
 ```
 
 - Default screen padding: `lg` (20pt) horizontal
@@ -384,7 +384,7 @@ export const spacing = {
 ## Radii — shared
 
 ```typescript
-export const radii = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 };
+export const radii = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 }
 ```
 
 - Cards / grouped lists: `lg`
@@ -400,29 +400,29 @@ export const radii = { sm: 8, md: 14, lg: 20, xl: 28, pill: 999 };
 export const shadowsLight = {
   none: {},
   card: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
   },
   elevated: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.06,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 4 },
     elevation: 3,
   },
   floating: {
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 8 },
     elevation: 6,
   },
-};
+}
 
-export const shadowsNone = { none: {}, card: {}, elevated: {}, floating: {} };
+export const shadowsNone = { none: {}, card: {}, elevated: {}, floating: {} }
 ```
 
 ---
@@ -436,7 +436,7 @@ export const motion = {
   springSnappy: { damping: 15, stiffness: 350, mass: 0.8 },
   timing: { duration: 280 },
   timingFast: { duration: 180 },
-};
+}
 ```
 
 - Reanimated 3 + Moti only. NEVER the legacy `Animated` API.

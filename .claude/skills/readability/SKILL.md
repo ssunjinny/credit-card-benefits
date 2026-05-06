@@ -238,10 +238,10 @@ In `hooks/useBenefitProgress.ts`:
 
 ```typescript
 export const useBenefitProgress = (benefitId: string) => {
-  const logs = useAppStore((state) => state.logs);
-  const used = sumLogsForBenefit(logs, benefitId);
-  return { used, cap, percentage, status };
-};
+  const logs = useAppStore((state) => state.logs)
+  const used = sumLogsForBenefit(logs, benefitId)
+  return { used, cap, percentage, status }
+}
 ```
 
 ### Return objects, not arrays
@@ -251,13 +251,13 @@ Arrays only for tuples with an obvious order (like `[value, setValue]`). Objects
 **Bad** — what's the order again?
 
 ```typescript
-const [used, cap, percentage] = useBenefitProgress(id);
+const [used, cap, percentage] = useBenefitProgress(id)
 ```
 
 **Good**:
 
 ```typescript
-const { used, cap, percentage } = useBenefitProgress(id);
+const { used, cap, percentage } = useBenefitProgress(id)
 ```
 
 ### Extract logic into hooks aggressively
@@ -282,18 +282,18 @@ The order to reach for state, top to bottom:
 ```typescript
 type AppStore = {
   // STATE
-  logs: BenefitLog[];
-  themeKey: ThemeKey;
-  isLoaded: boolean;
+  logs: BenefitLog[]
+  themeKey: ThemeKey
+  isLoaded: boolean
 
   // ACTIONS — verbs, mutate state
-  addLog: (log: BenefitLog) => void;
-  deleteLog: (id: string) => void;
-  setTheme: (key: ThemeKey) => void;
+  addLog: (log: BenefitLog) => void
+  deleteLog: (id: string) => void
+  setTheme: (key: ThemeKey) => void
 
   // QUERIES — derived data, no mutation
-  getBenefitProgress: (benefitId: string) => Progress;
-};
+  getBenefitProgress: (benefitId: string) => Progress
+}
 ```
 
 State, actions, and queries each get their own labeled section. Future-you will thank you.
@@ -302,11 +302,11 @@ State, actions, and queries each get their own labeled section. Future-you will 
 
 ```typescript
 // BAD — re-renders when ANY state changes
-const store = useAppStore();
-const logs = store.logs;
+const store = useAppStore()
+const logs = store.logs
 
 // GOOD — re-renders only when logs change
-const logs = useAppStore((state) => state.logs);
+const logs = useAppStore((state) => state.logs)
 ```
 
 This matters more in React Native than web because re-renders are more expensive on mobile.
@@ -323,8 +323,8 @@ Use `type` for all app code. It is more flexible (unions, intersections, mapped 
 
 ```typescript
 type Benefit =
-  | { category: "fixed"; annualCap: number; resetType: "jan1" | "per_use" }
-  | { category: "soft"; annualCap: null; resetType: "jan1" };
+  | { category: 'fixed'; annualCap: number; resetType: 'jan1' | 'per_use' }
+  | { category: 'soft'; annualCap: null; resetType: 'jan1' }
 ```
 
 The impossible state (a soft benefit with a cap) is now literally not representable. Better than runtime checks.
@@ -372,11 +372,11 @@ Use `@/` for any cross-feature import. Use relative (`./`, `../`) only for sibli
 
 ```typescript
 // GOOD
-import { useTheme } from "@/features/theme";
-import { useBenefitProgress } from "./useBenefitProgress";
+import { useTheme } from '@/features/theme'
+import { useBenefitProgress } from './useBenefitProgress'
 
 // BAD — never reach across features with relative paths
-import { useTheme } from "../../theme/ThemeProvider";
+import { useTheme } from '../../theme/ThemeProvider'
 ```
 
 ### Barrel files (index.ts) — used carefully
@@ -388,9 +388,9 @@ Use barrel files for:
 
 ```typescript
 // src/ui/index.ts
-export { Button } from "./Button";
-export { Card } from "./Card";
-export { Text } from "./Text";
+export { Button } from './Button'
+export { Card } from './Card'
+export { Text } from './Text'
 ```
 
 Do NOT barrel-export everything everywhere. Tree-shaking gets weird and circular imports get easier.
@@ -424,18 +424,18 @@ But DO NOT sprinkle `?.` defensively inside well-typed business logic. Use it at
 ```typescript
 // BAD — catches and re-throws, accomplishing nothing
 try {
-  await saveLog(log);
+  await saveLog(log)
 } catch (e) {
-  throw e;
+  throw e
 }
 
 // GOOD — there's a recovery
 try {
-  await saveLog(log);
-  Haptics.notificationAsync(Success);
+  await saveLog(log)
+  Haptics.notificationAsync(Success)
 } catch (e) {
-  Haptics.notificationAsync(Error);
-  showToast("Could not save. Try again.");
+  Haptics.notificationAsync(Error)
+  showToast('Could not save. Try again.')
 }
 ```
 
@@ -457,22 +457,20 @@ If you find yourself reaching for a comment, do one of the following instead:
 ```typescript
 // BAD — relying on a comment to do the work
 // scale down so the press feels tactile
-transform: [{ scale: 0.97 }];
+transform: [{ scale: 0.97 }]
 
 // GOOD — the constant explains itself
-const PRESS_FEEDBACK_SCALE = 0.97;
-transform: [{ scale: PRESS_FEEDBACK_SCALE }];
+const PRESS_FEEDBACK_SCALE = 0.97
+transform: [{ scale: PRESS_FEEDBACK_SCALE }]
 ```
 
 ```typescript
 // BAD — comment masks unclear logic
 // only count logs from the current year
-const valid = logs.filter(
-  (l) => new Date(l.date).getFullYear() === currentYear,
-);
+const valid = logs.filter((l) => new Date(l.date).getFullYear() === currentYear)
 
 // GOOD — extract; the function name is the comment
-const logsThisYear = filterLogsForYear(logs, currentYear);
+const logsThisYear = filterLogsForYear(logs, currentYear)
 ```
 
 ### The two narrow exceptions
@@ -497,10 +495,10 @@ If a screen needs an "emotional intent" note (which the UI skill mentions), enco
 
 // GOOD — captured as actual code, surfaceable in tooling
 const SCREEN_INTENT = {
-  name: "Home Dashboard",
-  emotion: "winning, calmly",
-  reference: "Ramp homepage card",
-} as const;
+  name: 'Home Dashboard',
+  emotion: 'winning, calmly',
+  reference: 'Ramp homepage card',
+} as const
 ```
 
 …or omit it entirely if the file's name and structure already tell the story.
