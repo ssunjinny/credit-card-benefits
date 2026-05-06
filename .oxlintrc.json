@@ -20,7 +20,6 @@
     "typescript/no-non-null-assertion": "warn",
     "react/react-in-jsx-scope": "off",
     "react/jsx-key": "error",
-    "react/no-array-index-key": "warn",
     "react/self-closing-comp": "warn",
     "react/rules-of-hooks": "error",
     "react/exhaustive-deps": "warn",
