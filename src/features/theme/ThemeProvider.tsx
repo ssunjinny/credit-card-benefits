@@ -1,4 +1,12 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 
 import { storage } from '@/lib/storage'
 
@@ -29,26 +37,27 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    storage.getItem(STORAGE_KEY).then((stored) => {
+    const loadStoredTheme = async () => {
+      const stored = await storage.getItem(STORAGE_KEY)
       if (isThemeKey(stored)) {
         setThemeKey(stored)
       }
       setIsReady(true)
-    })
+    }
+    loadStoredTheme()
   }, [])
 
-  const setTheme = (key: ThemeKey) => {
+  const setTheme = useCallback((key: ThemeKey) => {
     setThemeKey(key)
     storage.setItem(STORAGE_KEY, key)
-  }
+  }, [])
 
-  return (
-    <ThemeContext.Provider
-      value={{ theme: themes[themeKey], themeKey, setTheme, isReady }}
-    >
-      {children}
-    </ThemeContext.Provider>
+  const value = useMemo<ThemeContextValue>(
+    () => ({ theme: themes[themeKey], themeKey, setTheme, isReady }),
+    [themeKey, setTheme, isReady],
   )
+
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
 }
 
 export const useTheme = (): Theme => {

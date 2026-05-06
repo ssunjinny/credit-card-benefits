@@ -14,10 +14,10 @@ import * as Haptics from 'expo-haptics'
 import {
   ACCOUNT_CATEGORIES,
   categoriesForKind,
+  dollarsToCents,
+  type AccountKind,
   type CategoryMeta,
 } from '@/features/networth'
-import type { AccountKind } from '@/features/networth'
-import { dollarsToCents } from '@/features/networth'
 import { useTheme, type Theme } from '@/features/theme'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'

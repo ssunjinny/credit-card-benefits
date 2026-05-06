@@ -3,14 +3,13 @@ import { Alert, ScrollView, StyleSheet, View } from 'react-native'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
-import { findCategory } from '@/features/networth'
+import { centsToDollars, findCategory } from '@/features/networth'
 import { useAccountBalance } from '@/features/networth/hooks/useAccountBalance'
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { formatDateLabel } from '@/lib/date'
 import { useAppStore } from '@/store/useAppStore'
 import { Button, Card, Icon, Pressable, Screen, Text } from '@/ui'
-import { centsToDollars } from '@/features/networth'
 
 const AccountDetailScreen = () => {
   const theme = useTheme()

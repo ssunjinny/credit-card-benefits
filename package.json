@@ -6,7 +6,10 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo-google-fonts/geist-mono": "^0.4.1",
@@ -35,6 +38,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "oxlint": "^1.63.0",
     "typescript": "~5.9.2"
   },
   "private": true

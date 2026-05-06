@@ -31,7 +31,7 @@ export const useBenefitsOverview = () => {
       progress: computeBenefitProgress(benefit, logs),
     }))
 
-    const sorted = [...benefits].sort((a, b) => {
+    const sorted = benefits.toSorted((a, b) => {
       const orderDiff = statusOrder[a.progress.status] - statusOrder[b.progress.status]
       if (orderDiff !== 0) return orderDiff
       return a.name.localeCompare(b.name)

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { StyleSheet, View, type ViewStyle } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -6,7 +6,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated'
-import { useEffect } from 'react'
 
 import { useTheme, type Theme } from '@/features/theme'
 
