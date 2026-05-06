@@ -21,12 +21,12 @@ type ThemeContextValue = {
 }
 
 const STORAGE_KEY = 'amex_tracker_theme'
-const DEFAULT_KEY: ThemeKey = 'cream'
+const DEFAULT_KEY: ThemeKey = 'light'
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
 
 const isThemeKey = (value: string | null): value is ThemeKey =>
-  value === 'cream' || value === 'midnight' || value === 'onyx' || value === 'platinum'
+  value === 'light' || value === 'dark'
 
 type ThemeProviderProps = {
   children: ReactNode

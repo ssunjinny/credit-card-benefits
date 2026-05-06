@@ -25,25 +25,23 @@ This is not a budgeting app. It is a personal companion to a luxury credit card.
 
 ## Theme system
 
-The app supports **four themes** the user can pick from in Settings. Each theme is a complete, swappable token set. Components are theme-agnostic — they consume tokens via the `useTheme()` hook, never import colors directly.
+The app supports **two themes** the user can pick from in Settings: **Light** (default) and **Dark**. Each theme is a complete, swappable token set. Components are theme-agnostic — they consume tokens via the `useTheme()` hook, never import colors directly.
 
 ### Themes
 
-1. **Cream & Graphite** _(default)_ — light, stationery-like, brass accent. Daylight feel.
-2. **Midnight Concierge** — deep navy-black, cream text, champagne accent. Centurion lounge feel.
-3. **Onyx & Champagne** — true black, warm metallic. Most luxurious / nighttime.
-4. **Platinum Vault** — brushed steel grays, titanium feel. Most "tool" / utilitarian premium.
+1. **Light** _(default)_ — near-white canvas (`#FAFAFA`), warm gold accent. Daylight feel.
+2. **Dark** — near-black canvas (`#0A0A0A`), lifted-tone surfaces, lighter champagne accent.
+
+Both share the same warm gold/champagne accent family — `#8B6F3D` in light mode, `#C9A86A` in dark mode.
 
 ### Architecture
 
 ```
-src/theme/
+src/features/theme/
 ├── tokens.ts              # TypeScript type — the contract every theme must satisfy
 ├── themes/
-│   ├── cream.ts           # Cream & Graphite
-│   ├── midnight.ts        # Midnight Concierge
-│   ├── onyx.ts            # Onyx & Champagne
-│   └── platinum.ts        # Platinum Vault
+│   ├── light.ts           # Light theme
+│   └── dark.ts            # Dark theme
 ├── ThemeProvider.tsx      # React context, persistence, hooks
 └── index.ts               # public exports
 ```
@@ -52,7 +50,7 @@ src/theme/
 
 ```typescript
 // WRONG
-import { colors } from '../theme/themes/cream'
+import { colors } from '../theme/themes/light'
 backgroundColor: colors.surface.canvas
 
 // RIGHT
@@ -66,8 +64,8 @@ Same applies to `typography`, `spacing`, `radii`, `shadows`. All flow through `u
 
 - User's selected theme key is stored in AsyncStorage under `amex_tracker_theme`.
 - Theme loads synchronously on app boot before any UI renders. Use `expo-splash-screen` to prevent flash-of-wrong-theme.
-- Default if no stored theme: `cream`.
-- Settings screen has a theme picker with live preview (each theme rendered as a small card showing its hero number and accent).
+- Default if no stored theme: `light`.
+- Settings screen has a theme picker with two preview tiles, each rendered with its canvas + accent swatches (no theme name labels).
 
 ---
 
@@ -77,7 +75,7 @@ Every theme exports an object matching this shape. New themes just satisfy this 
 
 ```typescript
 export type Theme = {
-  key: 'cream' | 'midnight' | 'onyx' | 'platinum'
+  key: 'light' | 'dark'
   name: string
   isDark: boolean
 
@@ -118,27 +116,27 @@ export type Theme = {
 
 ---
 
-## Theme: Cream & Graphite (`themes/cream.ts`) — default
+## Theme: Light (`themes/light.ts`) — default
 
 ```typescript
 {
-  key: 'cream',
-  name: 'Cream & Graphite',
+  key: 'light',
+  name: 'Light',
   isDark: false,
   colors: {
     surface: {
-      canvas:       '#EFEAE0',
-      card:         '#FBF8F1',
-      cardElevated: '#FBF8F1',
-      inset:        '#E5DFD2',
-      deep:         '#1C1C1A',
+      canvas:       '#FAFAFA',
+      card:         '#FFFFFF',
+      cardElevated: '#FFFFFF',
+      inset:        '#F1F1F1',
+      deep:         '#0A0A0A',
     },
     label: {
-      primary:    '#1C1C1A',
-      secondary:  'rgba(28,28,26,0.62)',
-      tertiary:   'rgba(28,28,26,0.42)',
-      quaternary: 'rgba(28,28,26,0.22)',
-      onDark:     '#EFEAE0',
+      primary:    '#0A0A0A',
+      secondary:  'rgba(10,10,10,0.62)',
+      tertiary:   'rgba(10,10,10,0.42)',
+      quaternary: 'rgba(10,10,10,0.22)',
+      onDark:     '#FAFAFA',
     },
     signal: {
       base:   '#8B6F3D',
@@ -147,9 +145,9 @@ export type Theme = {
     },
     warning: { base: '#A05A1F', soft: '#F0E2CE' },
     danger:  { base: '#8C2828', soft: '#EDD9D5' },
-    separator: 'rgba(28,28,26,0.08)',
-    border:    'rgba(28,28,26,0.10)',
-    borderEmphasis: 'rgba(28,28,26,0.18)',
+    separator: 'rgba(10,10,10,0.08)',
+    border:    'rgba(10,10,10,0.10)',
+    borderEmphasis: 'rgba(10,10,10,0.18)',
   },
   shadows: shadowsLight,
 }
@@ -157,27 +155,27 @@ export type Theme = {
 
 ---
 
-## Theme: Midnight Concierge (`themes/midnight.ts`)
+## Theme: Dark (`themes/dark.ts`)
 
 ```typescript
 {
-  key: 'midnight',
-  name: 'Midnight Concierge',
+  key: 'dark',
+  name: 'Dark',
   isDark: true,
   colors: {
     surface: {
-      canvas:       '#14171C',
-      card:         '#1E232A',
-      cardElevated: '#252B33',
-      inset:        '#1A1E24',
-      deep:         '#0A0C10',
+      canvas:       '#0A0A0A',
+      card:         '#1A1A1A',
+      cardElevated: '#222222',
+      inset:        '#141414',
+      deep:         '#050505',
     },
     label: {
-      primary:    '#E8DFCB',
-      secondary:  'rgba(232,223,203,0.62)',
-      tertiary:   'rgba(232,223,203,0.42)',
-      quaternary: 'rgba(232,223,203,0.22)',
-      onDark:     '#E8DFCB',
+      primary:    '#FAFAFA',
+      secondary:  'rgba(250,250,250,0.62)',
+      tertiary:   'rgba(250,250,250,0.42)',
+      quaternary: 'rgba(250,250,250,0.22)',
+      onDark:     '#FAFAFA',
     },
     signal: {
       base:   '#C9A86A',
@@ -186,87 +184,9 @@ export type Theme = {
     },
     warning: { base: '#D49659', soft: 'rgba(212,150,89,0.15)' },
     danger:  { base: '#C26E6E', soft: 'rgba(194,110,110,0.15)' },
-    separator: 'rgba(232,223,203,0.08)',
-    border:    'rgba(232,223,203,0.10)',
-    borderEmphasis: 'rgba(232,223,203,0.18)',
-  },
-  shadows: shadowsNone,
-}
-```
-
----
-
-## Theme: Onyx & Champagne (`themes/onyx.ts`)
-
-```typescript
-{
-  key: 'onyx',
-  name: 'Onyx & Champagne',
-  isDark: true,
-  colors: {
-    surface: {
-      canvas:       '#0E0E10',
-      card:         '#1C1C20',
-      cardElevated: '#24242A',
-      inset:        '#161618',
-      deep:         '#000000',
-    },
-    label: {
-      primary:    '#EDE6D6',
-      secondary:  'rgba(237,230,214,0.62)',
-      tertiary:   'rgba(237,230,214,0.42)',
-      quaternary: 'rgba(237,230,214,0.22)',
-      onDark:     '#EDE6D6',
-    },
-    signal: {
-      base:   '#C9A86A',
-      soft:   'rgba(201,168,106,0.15)',
-      onSoft: '#C9A86A',
-    },
-    warning: { base: '#D49659', soft: 'rgba(212,150,89,0.15)' },
-    danger:  { base: '#C26E6E', soft: 'rgba(194,110,110,0.15)' },
-    separator: 'rgba(237,230,214,0.06)',
-    border:    'rgba(237,230,214,0.08)',
-    borderEmphasis: 'rgba(237,230,214,0.16)',
-  },
-  shadows: shadowsNone,
-}
-```
-
----
-
-## Theme: Platinum Vault (`themes/platinum.ts`)
-
-```typescript
-{
-  key: 'platinum',
-  name: 'Platinum Vault',
-  isDark: true,
-  colors: {
-    surface: {
-      canvas:       '#1A1F26',
-      card:         '#252B34',
-      cardElevated: '#2D343E',
-      inset:        '#1F2530',
-      deep:         '#0D1117',
-    },
-    label: {
-      primary:    '#D4D9DF',
-      secondary:  'rgba(212,217,223,0.62)',
-      tertiary:   'rgba(212,217,223,0.42)',
-      quaternary: 'rgba(212,217,223,0.22)',
-      onDark:     '#D4D9DF',
-    },
-    signal: {
-      base:   '#B8A77F',
-      soft:   'rgba(184,167,127,0.15)',
-      onSoft: '#B8A77F',
-    },
-    warning: { base: '#C29050', soft: 'rgba(194,144,80,0.15)' },
-    danger:  { base: '#B86B6B', soft: 'rgba(184,107,107,0.15)' },
-    separator: 'rgba(212,217,223,0.08)',
-    border:    'rgba(212,217,223,0.10)',
-    borderEmphasis: 'rgba(212,217,223,0.18)',
+    separator: 'rgba(250,250,250,0.08)',
+    border:    'rgba(250,250,250,0.10)',
+    borderEmphasis: 'rgba(250,250,250,0.18)',
   },
   shadows: shadowsNone,
 }
@@ -289,9 +209,9 @@ export type Theme = {
 
 3. **Borders whisper.** Always at the `border` token (~10% opacity). Hairline weight via `StyleSheet.hairlineWidth`. Never `borderWidth: 1`.
 
-4. **Pure white and pure black are banned across all themes.** Cream uses warm bone (`#FBF8F1`); dark themes use cream/silver text, never `#FFFFFF`. Backgrounds avoid `#000000`.
+4. **Backgrounds use near-pure values, not literal pure.** Light canvas is `#FAFAFA`, dark canvas is `#0A0A0A`. Pure `#FFFFFF` is reserved for elevated surfaces (`surface.card` / `cardElevated`) in light mode only — never as the primary canvas. Pure `#000000` is never used.
 
-5. **Dark themes lift surfaces with tone, not shadow.** Light theme uses subtle shadows. Dark themes have `shadows.none` everywhere — depth comes from the `card` → `cardElevated` tone shift.
+5. **Dark theme lifts surfaces with tone, not shadow.** Light theme uses subtle shadows. Dark theme has `shadows.none` everywhere — depth comes from the `card` → `cardElevated` tone shift (`#1A1A1A` → `#222222`).
 
 ---
 

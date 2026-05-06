@@ -1,14 +1,7 @@
 import type { Theme, ThemeKey } from '../tokens'
-import { cream } from './cream'
-import { midnight } from './midnight'
-import { onyx } from './onyx'
-import { platinum } from './platinum'
+import { dark } from './dark'
+import { light } from './light'
 
-export const themes: Record<ThemeKey, Theme> = {
-  cream,
-  midnight,
-  onyx,
-  platinum,
-}
+export const themes: Record<ThemeKey, Theme> = { light, dark }
 
-export const themeList: Theme[] = [cream, midnight, onyx, platinum]
+export const themeList: Theme[] = [light, dark]

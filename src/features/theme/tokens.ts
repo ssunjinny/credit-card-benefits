@@ -1,6 +1,6 @@
 import type { TextStyle, ViewStyle } from 'react-native'
 
-export type ThemeKey = 'cream' | 'midnight' | 'onyx' | 'platinum'
+export type ThemeKey = 'light' | 'dark'
 
 export type ColorTokens = {
   surface: {
