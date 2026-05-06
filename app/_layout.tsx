@@ -75,13 +75,8 @@ const RootStack = () => {
         contentStyle: { backgroundColor: theme.colors.surface.canvas },
       }}
     >
-      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="benefit/[id]" options={{ title: '' }} />
-      <Stack.Screen
-        name="log/[benefitId]"
-        options={{ presentation: 'modal', title: 'Capture a use' }}
-      />
       <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
       <Stack.Screen name="settings/theme" options={{ title: 'Theme' }} />
     </Stack>

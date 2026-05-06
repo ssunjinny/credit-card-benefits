@@ -14,16 +14,16 @@ const OnboardingScreen = () => {
     <Screen>
       <View style={styles.container}>
         <View style={styles.body}>
-          <Icon name="creditcard.fill" size={56} tone="signal" />
+          <Icon name="chart.pie.fill" size={56} tone="signal" />
           <Text variant="title1" style={styles.title}>
-            A quiet ledger for an expensive card.
+            A quiet ledger for your money.
           </Text>
           <Text variant="callout" tone="secondary" style={styles.copy}>
-            Capture each time you use a Platinum benefit and watch the value climb toward break
-            even on the $895 fee.
+            Track what you own and what you owe. Watch the worth climb.
           </Text>
           <Text variant="callout" tone="secondary" style={styles.copy}>
-            Credits, lounges, hotel perks. One place. Resets every January 1.
+            Capture every credit card benefit you earn back. Some reset on January 1; some last
+            for life.
           </Text>
         </View>
         <Button label="Begin" onPress={completeOnboarding} />

@@ -1,9 +1,9 @@
 {
   "expo": {
-    "name": "amex-tracker",
-    "slug": "amex-tracker",
+    "name": "networthmaxxing",
+    "slug": "networthmaxxing",
     "version": "1.0.0",
-    "scheme": "amextracker",
+    "scheme": "networthmaxxing",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

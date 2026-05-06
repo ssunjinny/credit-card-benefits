@@ -96,7 +96,7 @@ const BenefitDetailScreen = () => {
 
         <Button
           label="Capture a use"
-          onPress={() => router.push(`/log/${benefit.id}`)}
+          onPress={() => router.push(`/cards/log/${benefit.id}`)}
           leading={<Icon name="plus" size={18} tone="onSignal" />}
         />
 

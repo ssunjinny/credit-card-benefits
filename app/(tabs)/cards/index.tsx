@@ -61,7 +61,7 @@ const HomeScreen = () => {
               key={benefit.id}
               benefit={benefit}
               isLast={index === overview.benefits.length - 1}
-              onPress={() => router.push(`/benefit/${benefit.id}`)}
+              onPress={() => router.push(`/cards/benefit/${benefit.id}`)}
             />
           ))}
         </Card>
