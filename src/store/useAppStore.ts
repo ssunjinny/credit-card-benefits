@@ -3,14 +3,14 @@ import { create } from 'zustand'
 import { BENEFITS, findBenefit, computeBenefitProgress } from '@/features/benefits'
 import type { BenefitWithProgress } from '@/features/benefits'
 import type { BenefitLog } from '@/features/logs/types'
-import type { Account, BalanceSnapshot } from '@/features/networth'
+import type { NetWorthItem } from '@/features/networth'
 import { storage } from '@/lib/storage'
 import { generateId } from '@/lib/id'
-import { currentYear, today } from '@/lib/date'
+import { currentYear } from '@/lib/date'
 
 const STATE_STORAGE_KEY = 'amex_tracker_state'
 const ONBOARDING_KEY = 'amex_tracker_onboarded'
-const NETWORTH_STORAGE_KEY = 'nwm_networth_state'
+const NETWORTH_STORAGE_KEY = 'nwm_networth_items'
 
 type PersistedBenefitsState = {
   logs: BenefitLog[]
@@ -18,29 +18,19 @@ type PersistedBenefitsState = {
 }
 
 type PersistedNetWorthState = {
-  accounts: Account[]
-  balances: BalanceSnapshot[]
+  items: NetWorthItem[]
 }
 
-type AddAccountInput = Omit<Account, 'id' | 'createdAt'> & {
-  startingBalanceCents?: number
-  startingBalanceDate?: string
-}
+type AddItemInput = Omit<NetWorthItem, 'id' | 'updatedAt'>
 
-type RecordBalanceInput = {
-  accountId: string
-  amountCents: number
-  takenAt?: string
-  note?: string
-}
+type UpdateItemPatch = Partial<Omit<NetWorthItem, 'id'>>
 
 type AppStore = {
   logs: BenefitLog[]
   lastResetYear: number
   isLoaded: boolean
   hasOnboarded: boolean
-  accounts: Account[]
-  balances: BalanceSnapshot[]
+  items: NetWorthItem[]
 
   initialize: () => Promise<void>
   completeOnboarding: () => Promise<void>
@@ -48,11 +38,9 @@ type AppStore = {
   deleteLog: (id: string) => Promise<void>
   resetCurrentYear: () => Promise<void>
 
-  addAccount: (input: AddAccountInput) => Promise<Account>
-  updateAccount: (id: string, patch: Partial<Omit<Account, 'id' | 'createdAt'>>) => Promise<void>
-  deleteAccount: (id: string) => Promise<void>
-  recordBalance: (input: RecordBalanceInput) => Promise<BalanceSnapshot>
-  deleteBalance: (id: string) => Promise<void>
+  addItem: (input: AddItemInput) => Promise<NetWorthItem>
+  updateItem: (id: string, patch: UpdateItemPatch) => Promise<void>
+  deleteItem: (id: string) => Promise<void>
 
   getBenefitProgress: (id: string) => BenefitWithProgress | null
   getAllBenefitsWithProgress: () => BenefitWithProgress[]
@@ -98,8 +86,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   lastResetYear: currentYear(),
   isLoaded: false,
   hasOnboarded: false,
-  accounts: [],
-  balances: [],
+  items: [],
 
   initialize: async () => {
     const [persistedBenefits, persistedNetWorth, onboarded] = await Promise.all([
@@ -109,7 +96,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
     ])
     const year = currentYear()
 
-    const networth = persistedNetWorth ?? { accounts: [], balances: [] }
+    const networth = persistedNetWorth ?? { items: [] }
     if (!persistedNetWorth) {
       await persistNetWorth(networth)
     }
@@ -177,61 +164,30 @@ export const useAppStore = create<AppStore>((set, get) => ({
     await persistBenefits(next)
   },
 
-  addAccount: async ({ startingBalanceCents, startingBalanceDate, ...rest }) => {
-    const account: Account = {
-      ...rest,
+  addItem: async (input) => {
+    const item: NetWorthItem = {
+      ...input,
       id: generateId(),
-      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     }
-    const nextAccounts = [...get().accounts, account]
-    let nextBalances = get().balances
-    if (startingBalanceCents != null && startingBalanceCents >= 0) {
-      const snapshot: BalanceSnapshot = {
-        id: generateId(),
-        accountId: account.id,
-        amountCents: startingBalanceCents,
-        takenAt: startingBalanceDate ?? today(),
-      }
-      nextBalances = [...nextBalances, snapshot]
-    }
-    set({ accounts: nextAccounts, balances: nextBalances })
-    await persistNetWorth({ accounts: nextAccounts, balances: nextBalances })
-    return account
+    const nextItems = [...get().items, item]
+    set({ items: nextItems })
+    await persistNetWorth({ items: nextItems })
+    return item
   },
 
-  updateAccount: async (id, patch) => {
-    const nextAccounts = get().accounts.map((account) =>
-      account.id === id ? { ...account, ...patch } : account,
+  updateItem: async (id, patch) => {
+    const nextItems = get().items.map((item) =>
+      item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item,
     )
-    set({ accounts: nextAccounts })
-    await persistNetWorth({ accounts: nextAccounts, balances: get().balances })
+    set({ items: nextItems })
+    await persistNetWorth({ items: nextItems })
   },
 
-  deleteAccount: async (id) => {
-    const nextAccounts = get().accounts.filter((account) => account.id !== id)
-    const nextBalances = get().balances.filter((balance) => balance.accountId !== id)
-    set({ accounts: nextAccounts, balances: nextBalances })
-    await persistNetWorth({ accounts: nextAccounts, balances: nextBalances })
-  },
-
-  recordBalance: async ({ accountId, amountCents, takenAt, note }) => {
-    const snapshot: BalanceSnapshot = {
-      id: generateId(),
-      accountId,
-      amountCents,
-      takenAt: takenAt ?? today(),
-      note,
-    }
-    const nextBalances = [...get().balances, snapshot]
-    set({ balances: nextBalances })
-    await persistNetWorth({ accounts: get().accounts, balances: nextBalances })
-    return snapshot
-  },
-
-  deleteBalance: async (id) => {
-    const nextBalances = get().balances.filter((balance) => balance.id !== id)
-    set({ balances: nextBalances })
-    await persistNetWorth({ accounts: get().accounts, balances: nextBalances })
+  deleteItem: async (id) => {
+    const nextItems = get().items.filter((item) => item.id !== id)
+    set({ items: nextItems })
+    await persistNetWorth({ items: nextItems })
   },
 
   getBenefitProgress: (id) => {

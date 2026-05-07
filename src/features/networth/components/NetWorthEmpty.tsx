@@ -4,19 +4,18 @@ import { StyleSheet, View } from 'react-native'
 import { useTheme, type Theme } from '@/features/theme'
 import { Icon, Text } from '@/ui'
 
-export const AccountListEmpty = () => {
+export const NetWorthEmpty = () => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
 
   return (
     <View style={styles.container}>
-      <Icon name="building.columns" size={48} tone="tertiary" />
+      <Icon name="square.stack.3d.up" size={48} tone="tertiary" />
       <Text variant="headline" tone="secondary" style={styles.headline}>
-        Add your first account.
+        Add your first asset or liability.
       </Text>
       <Text variant="callout" tone="tertiary" style={styles.copy}>
-        Start with a checking account, a brokerage, or a credit card balance. The picture builds
-        from there.
+        Track what you own and what you owe. Values are entered manually — update them any time.
       </Text>
     </View>
   )

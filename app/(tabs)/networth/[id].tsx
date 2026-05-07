@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Alert,
   KeyboardAvoidingView,
@@ -8,67 +8,88 @@ import {
   TextInput,
   View,
 } from 'react-native'
-import { Stack, useRouter } from 'expo-router'
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
 import {
-  ACCOUNT_CATEGORIES,
   categoriesForKind,
+  centsToDollars,
   dollarsToCents,
-  type AccountKind,
+  findCategory,
   type CategoryMeta,
 } from '@/features/networth'
 import { useTheme, type Theme } from '@/features/theme'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
-const AddAccountScreen = () => {
+const EditItemScreen = () => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
   const router = useRouter()
-  const addAccount = useAppStore((state) => state.addAccount)
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const item = useAppStore((state) => state.items.find((i) => i.id === id))
+  const updateItem = useAppStore((state) => state.updateItem)
+  const deleteItem = useAppStore((state) => state.deleteItem)
 
-  const [kind, setKind] = useState<AccountKind>('asset')
-  const [category, setCategory] = useState<CategoryMeta>(ACCOUNT_CATEGORIES[0])
-  const [name, setName] = useState('')
-  const [institution, setInstitution] = useState('')
-  const [amount, setAmount] = useState('')
+  const initialCategory = item
+    ? (findCategory(item.category) ?? categoriesForKind(item.kind)[0])
+    : null
+  const initialAmount = item ? centsToDollars(item.amountCents).toString() : ''
 
-  const numericAmount = Number.parseFloat(amount)
-  const amountValid = amount.length === 0 || (Number.isFinite(numericAmount) && numericAmount >= 0)
-  const canSubmit = name.trim().length > 0 && amountValid
+  const [name, setName] = useState(item?.name ?? '')
+  const [category, setCategory] = useState<CategoryMeta | null>(initialCategory)
+  const [amount, setAmount] = useState(initialAmount)
 
-  const handleKindChange = (next: AccountKind) => {
-    if (next === kind) return
-    setKind(next)
-    setCategory(categoriesForKind(next)[0])
+  useEffect(() => {
+    if (!item) return
+    setName(item.name)
+    setCategory(findCategory(item.category) ?? categoriesForKind(item.kind)[0])
+    setAmount(centsToDollars(item.amountCents).toString())
+  }, [item])
+
+  if (!item) {
+    return <NotFound />
   }
 
+  const numericAmount = Number.parseFloat(amount)
+  const amountValid = Number.isFinite(numericAmount) && numericAmount >= 0
+  const canSubmit = name.trim().length > 0 && amountValid && category !== null
+
   const onSave = async () => {
-    if (!canSubmit) {
-      Alert.alert('Check the entry', 'A name and a non-negative balance are required.')
+    if (!canSubmit || !category) {
+      Alert.alert('Check the entry', 'A name and a non-negative value are required.')
       return
     }
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    await addAccount({
+    await updateItem(item.id, {
       name: name.trim(),
-      kind,
       category: category.key,
       symbol: category.symbol,
-      institution: institution.trim() ? institution.trim() : undefined,
-      startingBalanceCents:
-        amount.length > 0 && Number.isFinite(numericAmount)
-          ? dollarsToCents(numericAmount)
-          : undefined,
+      amountCents: dollarsToCents(numericAmount),
     })
     router.back()
+  }
+
+  const onDelete = () => {
+    Alert.alert(`Delete ${item.name}?`, 'This removes the entry from your net worth.', [
+      { text: 'Keep', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+          await deleteItem(item.id)
+          router.back()
+        },
+      },
+    ])
   }
 
   return (
     <Screen edges={['bottom']}>
       <Stack.Screen
         options={{
-          title: 'Add account',
+          title: item.kind === 'asset' ? 'Edit asset' : 'Edit liability',
           headerLeft: () => (
             <Pressable onPress={() => router.back()} hitSlop={10} scaleOnPress={false}>
               <Text variant="body" tone="signal">
@@ -90,16 +111,13 @@ const AddAccountScreen = () => {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-          <KindSelector kind={kind} onChange={handleKindChange} />
-
-          <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
+          <Text variant="sectionHeader" tone="tertiary" style={styles.firstSection}>
             Name
           </Text>
           <Card padded={false} style={styles.inputCard}>
             <TextInput
               value={name}
               onChangeText={setName}
-              placeholder={kind === 'asset' ? 'e.g. Chase Checking' : 'e.g. Auto Loan'}
               placeholderTextColor={theme.colors.label.tertiary}
               autoCapitalize="words"
               style={[styles.textInput, { color: theme.colors.label.primary }]}
@@ -109,10 +127,12 @@ const AddAccountScreen = () => {
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
             Category
           </Text>
-          <CategoryPicker kind={kind} value={category} onChange={setCategory} />
+          {category ? (
+            <CategoryPicker kind={item.kind} value={category} onChange={setCategory} />
+          ) : null}
 
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
-            Starting balance
+            {item.kind === 'asset' ? 'Value' : 'Amount owed'}
           </Text>
           <Card padded={false} style={styles.amountCard}>
             <Text variant="display" tone="tertiary" style={styles.dollar}>
@@ -127,72 +147,20 @@ const AddAccountScreen = () => {
               style={[styles.amountInput, { color: theme.colors.label.primary }]}
             />
           </Card>
-          <Text variant="footnote" tone="tertiary" style={styles.hint}>
-            Today's balance. You can update it any time.
-          </Text>
 
-          <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
-            Institution (optional)
-          </Text>
-          <Card padded={false} style={styles.inputCard}>
-            <TextInput
-              value={institution}
-              onChangeText={setInstitution}
-              placeholder="e.g. Schwab"
-              placeholderTextColor={theme.colors.label.tertiary}
-              autoCapitalize="words"
-              style={[styles.textInput, { color: theme.colors.label.primary }]}
-            />
-          </Card>
+          <Pressable onPress={onDelete} style={styles.deleteAction} scaleOnPress={false}>
+            <Text variant="footnote" style={{ color: theme.colors.danger.base }}>
+              Delete entry
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   )
 }
 
-type KindSelectorProps = {
-  kind: AccountKind
-  onChange: (next: AccountKind) => void
-}
-
-const KindSelector = ({ kind, onChange }: KindSelectorProps) => {
-  const theme = useTheme()
-  const styles = useMemo(() => createStyles(theme), [theme])
-  return (
-    <View style={styles.kindRow}>
-      <KindPill label="Asset" active={kind === 'asset'} onPress={() => onChange('asset')} />
-      <KindPill
-        label="Liability"
-        active={kind === 'liability'}
-        onPress={() => onChange('liability')}
-      />
-    </View>
-  )
-}
-
-type KindPillProps = {
-  label: string
-  active: boolean
-  onPress: () => void
-}
-
-const KindPill = ({ label, active, onPress }: KindPillProps) => {
-  const theme = useTheme()
-  const styles = useMemo(() => createStyles(theme), [theme])
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.kindPill, active && { backgroundColor: theme.colors.signal.base }]}
-    >
-      <Text variant="headline" tone={active ? 'onSignal' : 'secondary'}>
-        {label}
-      </Text>
-    </Pressable>
-  )
-}
-
 type CategoryPickerProps = {
-  kind: AccountKind
+  kind: 'asset' | 'liability'
   value: CategoryMeta
   onChange: (next: CategoryMeta) => void
 }
@@ -228,7 +196,23 @@ const CategoryPicker = ({ kind, value, onChange }: CategoryPickerProps) => {
   )
 }
 
-export default AddAccountScreen
+const NotFound = () => {
+  const theme = useTheme()
+  const styles = useMemo(() => createStyles(theme), [theme])
+  return (
+    <Screen>
+      <Stack.Screen options={{ title: 'Not found' }} />
+      <View style={styles.notFound}>
+        <Icon name="questionmark.circle" size={40} tone="tertiary" />
+        <Text variant="headline" tone="secondary">
+          That entry isn't here anymore.
+        </Text>
+      </View>
+    </Screen>
+  )
+}
+
+export default EditItemScreen
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -237,6 +221,10 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.lg,
       paddingTop: theme.spacing.lg,
       paddingBottom: theme.spacing.xxxl,
+    },
+    firstSection: {
+      marginBottom: theme.spacing.sm,
+      paddingHorizontal: theme.spacing.xs,
     },
     sectionGap: {
       marginTop: theme.spacing.xl,
@@ -266,23 +254,6 @@ const createStyles = (theme: Theme) =>
       fontFamily: 'GeistMono_600SemiBold',
       paddingVertical: theme.spacing.base,
     },
-    hint: {
-      marginTop: theme.spacing.xs,
-      paddingHorizontal: theme.spacing.xs,
-    },
-    kindRow: {
-      flexDirection: 'row',
-      gap: theme.spacing.sm,
-    },
-    kindPill: {
-      flex: 1,
-      paddingVertical: theme.spacing.md,
-      borderRadius: theme.radii.md,
-      alignItems: 'center',
-      backgroundColor: theme.colors.surface.card,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: theme.colors.border,
-    },
     categoryRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -300,5 +271,16 @@ const createStyles = (theme: Theme) =>
     },
     categoryLabel: {
       flex: 1,
+    },
+    deleteAction: {
+      marginTop: theme.spacing.xl,
+      alignItems: 'center',
+      paddingVertical: theme.spacing.md,
+    },
+    notFound: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.spacing.md,
     },
   })

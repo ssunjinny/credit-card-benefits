@@ -2,39 +2,36 @@ import { useMemo } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import { AccountListEmpty } from '@/features/networth/components/AccountListEmpty'
-import { AccountListSkeleton } from '@/features/networth/components/AccountListSkeleton'
-import { AccountRow } from '@/features/networth/components/AccountRow'
 import { BalanceBreakdown } from '@/features/networth/components/BalanceBreakdown'
+import { NetWorthEmpty } from '@/features/networth/components/NetWorthEmpty'
 import { NetWorthHeroCard } from '@/features/networth/components/NetWorthHeroCard'
-import { useAccounts } from '@/features/networth/hooks/useAccounts'
+import { NetWorthRow } from '@/features/networth/components/NetWorthRow'
+import { NetWorthSkeleton } from '@/features/networth/components/NetWorthSkeleton'
+import { useItems } from '@/features/networth/hooks/useItems'
 import { useNetWorth } from '@/features/networth/hooks/useNetWorth'
 import { useTheme, type Theme } from '@/features/theme'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
-
-import { latestBalanceFor } from '@/features/networth/utils'
 
 const NetWorthScreen = () => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
   const router = useRouter()
   const isLoaded = useAppStore((state) => state.isLoaded)
-  const balances = useAppStore((state) => state.balances)
-  const { assets, liabilities } = useAccounts()
+  const { assets, liabilities } = useItems()
   const summary = useNetWorth()
 
   if (!isLoaded) {
     return (
       <Screen>
         <ScrollView contentContainerStyle={styles.content}>
-          <AccountListSkeleton />
+          <NetWorthSkeleton />
         </ScrollView>
       </Screen>
     )
   }
 
-  const hasAccounts = assets.length + liabilities.length > 0
+  const hasItems = assets.length + liabilities.length > 0
 
   return (
     <Screen>
@@ -43,11 +40,7 @@ const NetWorthScreen = () => {
           <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
             <Icon name="gearshape" size={22} tone="tertiary" />
           </Pressable>
-          <Pressable
-            onPress={() => router.push('/networth/account/new')}
-            hitSlop={12}
-            scaleOnPress={false}
-          >
+          <Pressable onPress={() => router.push('/networth/new')} hitSlop={12} scaleOnPress={false}>
             <Icon name="plus" size={22} tone="signal" />
           </Pressable>
         </View>
@@ -59,23 +52,22 @@ const NetWorthScreen = () => {
           asOf={summary.asOf}
         />
 
-        {!hasAccounts ? <AccountListEmpty /> : null}
+        {!hasItems ? <NetWorthEmpty /> : null}
 
         <BalanceBreakdown totals={summary.byCategory} />
 
         {assets.length > 0 ? (
           <View style={styles.section}>
             <Text variant="sectionHeader" tone="tertiary" style={styles.sectionLabel}>
-              Asset accounts
+              Assets
             </Text>
             <Card padded={false}>
-              {assets.map((account, index) => (
-                <AccountRow
-                  key={account.id}
-                  account={account}
-                  latest={latestBalanceFor(account.id, balances)}
+              {assets.map((item, index) => (
+                <NetWorthRow
+                  key={item.id}
+                  item={item}
                   isLast={index === assets.length - 1}
-                  onPress={() => router.push(`/networth/account/${account.id}`)}
+                  onPress={() => router.push(`/networth/${item.id}`)}
                 />
               ))}
             </Card>
@@ -85,16 +77,15 @@ const NetWorthScreen = () => {
         {liabilities.length > 0 ? (
           <View style={styles.section}>
             <Text variant="sectionHeader" tone="tertiary" style={styles.sectionLabel}>
-              Liability accounts
+              Liabilities
             </Text>
             <Card padded={false}>
-              {liabilities.map((account, index) => (
-                <AccountRow
-                  key={account.id}
-                  account={account}
-                  latest={latestBalanceFor(account.id, balances)}
+              {liabilities.map((item, index) => (
+                <NetWorthRow
+                  key={item.id}
+                  item={item}
                   isLast={index === liabilities.length - 1}
-                  onPress={() => router.push(`/networth/account/${account.id}`)}
+                  onPress={() => router.push(`/networth/${item.id}`)}
                 />
               ))}
             </Card>

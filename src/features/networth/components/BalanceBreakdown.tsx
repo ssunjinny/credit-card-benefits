@@ -5,8 +5,8 @@ import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { Card, Icon, Text } from '@/ui'
 
-import { ACCOUNT_CATEGORIES, type CategoryMeta } from '../constants'
-import type { AccountKind, CategoryTotal } from '../types'
+import { ITEM_CATEGORIES, type CategoryMeta } from '../constants'
+import type { CategoryTotal, NetWorthItemKind } from '../types'
 import { centsToDollars } from '../utils'
 
 export type BalanceBreakdownProps = {
@@ -14,14 +14,14 @@ export type BalanceBreakdownProps = {
 }
 
 const orderedCategoriesForKind = (
-  kind: AccountKind,
+  kind: NetWorthItemKind,
   totals: CategoryTotal[],
 ): {
   meta: CategoryMeta
   total: CategoryTotal
 }[] => {
   const totalsByKey = new Map(totals.map((entry) => [entry.category, entry]))
-  return ACCOUNT_CATEGORIES.filter((meta) => meta.kind === kind)
+  return ITEM_CATEGORIES.filter((meta) => meta.kind === kind)
     .map((meta) => {
       const total = totalsByKey.get(meta.key)
       if (!total || total.totalCents === 0) return null

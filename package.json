@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/geist-mono": "^0.4.1",
+    "@expo/metro-runtime": "~6.1.2",
     "@gorhom/bottom-sheet": "^5.2.10",
     "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "~54.0.33",
@@ -31,6 +32,7 @@
     "expo-symbols": "~1.0.8",
     "moti": "^0.30.0",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-gesture-handler": "~2.28.0",
     "react-native-get-random-values": "^2.0.0",
@@ -38,7 +40,9 @@
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "15.12.1",
+    "react-native-web": "^0.21.0",
     "react-native-worklets": "0.5.1",
+    "scheduler": "^0.27.0",
     "uuid": "^14.0.0",
     "zustand": "^5.0.12"
   },

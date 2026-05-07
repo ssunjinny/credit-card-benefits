@@ -1,15 +1,15 @@
 import type { SymbolViewProps } from 'expo-symbols'
 
-import type { AccountCategory, AccountKind } from './types'
+import type { NetWorthItemCategory, NetWorthItemKind } from './types'
 
 export type CategoryMeta = {
-  key: AccountCategory
+  key: NetWorthItemCategory
   label: string
-  kind: AccountKind
+  kind: NetWorthItemKind
   symbol: SymbolViewProps['name']
 }
 
-export const ACCOUNT_CATEGORIES: CategoryMeta[] = [
+export const ITEM_CATEGORIES: CategoryMeta[] = [
   { key: 'cash', label: 'Cash', kind: 'asset', symbol: 'banknote.fill' },
   {
     key: 'investment',
@@ -34,8 +34,8 @@ export const ACCOUNT_CATEGORIES: CategoryMeta[] = [
   { key: 'other_liability', label: 'Other', kind: 'liability', symbol: 'square.dotted' },
 ]
 
-export const findCategory = (key: AccountCategory): CategoryMeta | null =>
-  ACCOUNT_CATEGORIES.find((meta) => meta.key === key) ?? null
+export const findCategory = (key: NetWorthItemCategory): CategoryMeta | null =>
+  ITEM_CATEGORIES.find((meta) => meta.key === key) ?? null
 
-export const categoriesForKind = (kind: AccountKind): CategoryMeta[] =>
-  ACCOUNT_CATEGORIES.filter((meta) => meta.kind === kind)
+export const categoriesForKind = (kind: NetWorthItemKind): CategoryMeta[] =>
+  ITEM_CATEGORIES.filter((meta) => meta.kind === kind)

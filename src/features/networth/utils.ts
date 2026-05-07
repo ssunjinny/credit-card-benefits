@@ -1,9 +1,8 @@
 import type {
-  Account,
-  AccountCategory,
-  AccountKind,
-  BalanceSnapshot,
   CategoryTotal,
+  NetWorthItem,
+  NetWorthItemCategory,
+  NetWorthItemKind,
   NetWorthSummary,
 } from './types'
 
@@ -11,89 +10,52 @@ export const dollarsToCents = (dollars: number) => Math.round(dollars * 100)
 
 export const centsToDollars = (cents: number) => cents / 100
 
-export const latestBalanceFor = (
-  accountId: string,
-  balances: BalanceSnapshot[],
-): BalanceSnapshot | null => {
-  let latest: BalanceSnapshot | null = null
-  for (const balance of balances) {
-    if (balance.accountId !== accountId) continue
-    if (!latest || balance.takenAt > latest.takenAt) latest = balance
-  }
-  return latest
-}
-
-export const balancesForAccount = (
-  accountId: string,
-  balances: BalanceSnapshot[],
-): BalanceSnapshot[] =>
-  balances
-    .filter((balance) => balance.accountId === accountId)
-    .sort((a, b) => b.takenAt.localeCompare(a.takenAt))
-
-export const groupAccountsByKind = (accounts: Account[]) => {
-  const assets: Account[] = []
-  const liabilities: Account[] = []
-  for (const account of accounts) {
-    if (account.kind === 'asset') assets.push(account)
-    else liabilities.push(account)
+export const groupItemsByKind = (items: NetWorthItem[]) => {
+  const assets: NetWorthItem[] = []
+  const liabilities: NetWorthItem[] = []
+  for (const item of items) {
+    if (item.kind === 'asset') assets.push(item)
+    else liabilities.push(item)
   }
   return { assets, liabilities }
 }
 
-export const sumLatestForKind = (
-  accounts: Account[],
-  balances: BalanceSnapshot[],
-  kind: AccountKind,
-) =>
-  accounts
-    .filter((account) => account.kind === kind)
-    .reduce(
-      (total, account) => total + (latestBalanceFor(account.id, balances)?.amountCents ?? 0),
-      0,
-    )
+export const sumItemsForKind = (items: NetWorthItem[], kind: NetWorthItemKind) =>
+  items.filter((item) => item.kind === kind).reduce((total, item) => total + item.amountCents, 0)
 
-export const summarizeNetWorth = (
-  accounts: Account[],
-  balances: BalanceSnapshot[],
-): NetWorthSummary => {
-  const totalAssetsCents = sumLatestForKind(accounts, balances, 'asset')
-  const totalLiabilitiesCents = sumLatestForKind(accounts, balances, 'liability')
-  const asOf = latestSnapshotDate(balances)
+export const summarizeNetWorth = (items: NetWorthItem[]): NetWorthSummary => {
+  const totalAssetsCents = sumItemsForKind(items, 'asset')
+  const totalLiabilitiesCents = sumItemsForKind(items, 'liability')
   return {
     totalAssetsCents,
     totalLiabilitiesCents,
     netCents: totalAssetsCents - totalLiabilitiesCents,
-    asOf,
+    asOf: latestUpdatedAt(items),
   }
 }
 
-export const totalsByCategory = (
-  accounts: Account[],
-  balances: BalanceSnapshot[],
-): CategoryTotal[] => {
-  const totals = new Map<AccountCategory, CategoryTotal>()
-  for (const account of accounts) {
-    const cents = latestBalanceFor(account.id, balances)?.amountCents ?? 0
-    const existing = totals.get(account.category)
+export const totalsByCategory = (items: NetWorthItem[]): CategoryTotal[] => {
+  const totals = new Map<NetWorthItemCategory, CategoryTotal>()
+  for (const item of items) {
+    const existing = totals.get(item.category)
     if (existing) {
-      existing.totalCents += cents
-      existing.accountCount += 1
+      existing.totalCents += item.amountCents
+      existing.itemCount += 1
     } else {
-      totals.set(account.category, {
-        category: account.category,
-        totalCents: cents,
-        accountCount: 1,
+      totals.set(item.category, {
+        category: item.category,
+        totalCents: item.amountCents,
+        itemCount: 1,
       })
     }
   }
   return Array.from(totals.values())
 }
 
-const latestSnapshotDate = (balances: BalanceSnapshot[]): string | null => {
+const latestUpdatedAt = (items: NetWorthItem[]): string | null => {
   let latest: string | null = null
-  for (const balance of balances) {
-    if (!latest || balance.takenAt > latest) latest = balance.takenAt
+  for (const item of items) {
+    if (!latest || item.updatedAt > latest) latest = item.updatedAt
   }
   return latest
 }

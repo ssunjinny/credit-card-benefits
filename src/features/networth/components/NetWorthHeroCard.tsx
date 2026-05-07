@@ -16,7 +16,7 @@ export type NetWorthHeroCardProps = {
 }
 
 const updatedLabel = (asOf: string | null) =>
-  asOf ? `Updated ${relativeDayLabel(asOf)}` : 'No balances yet'
+  asOf ? `Updated ${relativeDayLabel(asOf)}` : 'Nothing tracked yet'
 
 export const NetWorthHeroCard = ({
   netCents,

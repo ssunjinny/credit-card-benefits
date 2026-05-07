@@ -5,49 +5,39 @@ import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { Icon, Pressable, Text } from '@/ui'
 
-import type { Account, BalanceSnapshot } from '../types'
+import { findCategory } from '../constants'
+import type { NetWorthItem } from '../types'
 import { centsToDollars } from '../utils'
 
-export type AccountRowProps = {
-  account: Account
-  latest: BalanceSnapshot | null
+export type NetWorthRowProps = {
+  item: NetWorthItem
   onPress: () => void
   isLast?: boolean
 }
 
 const ROW_MIN_HEIGHT = 64
 
-const balanceLabel = (latest: BalanceSnapshot | null) =>
-  latest ? formatCurrency(centsToDollars(latest.amountCents)) : '—'
-
-const subline = (account: Account) => account.institution ?? labelForCategory(account.category)
-
-const labelForCategory = (category: string) =>
-  category
-    .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-
-export const AccountRow = ({ account, latest, onPress, isLast }: AccountRowProps) => {
+export const NetWorthRow = ({ item, onPress, isLast }: NetWorthRowProps) => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
+  const categoryLabel = findCategory(item.category)?.label ?? ''
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={[styles.row, !isLast && styles.divider]}>
         <View style={styles.leading}>
-          <Icon name={account.symbol} size={22} tone="signal" />
+          <Icon name={item.symbol} size={22} tone="signal" />
         </View>
         <View style={styles.middle}>
           <Text variant="headline" numberOfLines={1}>
-            {account.name}
+            {item.name}
           </Text>
           <Text variant="footnote" tone="tertiary" numberOfLines={1}>
-            {subline(account)}
+            {categoryLabel}
           </Text>
         </View>
         <View style={styles.right}>
-          <Text variant="listValue">{balanceLabel(latest)}</Text>
+          <Text variant="listValue">{formatCurrency(centsToDollars(item.amountCents))}</Text>
         </View>
       </View>
     </Pressable>

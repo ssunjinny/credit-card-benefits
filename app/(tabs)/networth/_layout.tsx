@@ -22,12 +22,8 @@ const NetWorthStackLayout = () => {
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="account/[id]" options={{ title: '' }} />
-      <Stack.Screen name="account/new" options={{ presentation: 'modal', title: 'Add account' }} />
-      <Stack.Screen
-        name="balance/[accountId]"
-        options={{ presentation: 'modal', title: 'Update balance' }}
-      />
+      <Stack.Screen name="new" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="[id]" options={{ presentation: 'modal' }} />
     </Stack>
   )
 }

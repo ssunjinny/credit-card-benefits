@@ -6,7 +6,7 @@ import { Card, Skeleton } from '@/ui'
 
 const SKELETON_ROW_COUNT = 4
 
-export const AccountListSkeleton = () => {
+export const NetWorthSkeleton = () => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
 

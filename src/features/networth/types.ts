@@ -1,8 +1,8 @@
 import type { SymbolViewProps } from 'expo-symbols'
 
-export type AccountKind = 'asset' | 'liability'
+export type NetWorthItemKind = 'asset' | 'liability'
 
-export type AccountCategory =
+export type NetWorthItemCategory =
   | 'cash'
   | 'investment'
   | 'crypto'
@@ -16,28 +16,20 @@ export type AccountCategory =
   | 'personal_loan'
   | 'other_liability'
 
-export type Account = {
+export type NetWorthItem = {
   id: string
   name: string
-  kind: AccountKind
-  category: AccountCategory
+  kind: NetWorthItemKind
+  category: NetWorthItemCategory
   symbol: SymbolViewProps['name']
-  institution?: string
-  createdAt: string
-}
-
-export type BalanceSnapshot = {
-  id: string
-  accountId: string
   amountCents: number
-  takenAt: string
-  note?: string
+  updatedAt: string
 }
 
 export type CategoryTotal = {
-  category: AccountCategory
+  category: NetWorthItemCategory
   totalCents: number
-  accountCount: number
+  itemCount: number
 }
 
 export type NetWorthSummary = {
