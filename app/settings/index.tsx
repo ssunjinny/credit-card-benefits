@@ -5,9 +5,9 @@ import * as Haptics from 'expo-haptics'
 
 import { ANNUAL_FEE } from '@/features/benefits'
 import { themes, useSetTheme, useTheme, type Theme } from '@/features/theme'
+import { signOut, useUser } from '@/lib/auth'
 import { formatCurrency } from '@/lib/currency'
 import { currentYear } from '@/lib/date'
-import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
 const SettingsScreen = () => {
@@ -15,25 +15,24 @@ const SettingsScreen = () => {
   const styles = useMemo(() => createStyles(theme), [theme])
   const router = useRouter()
   const { themeKey } = useSetTheme()
-  const lastResetYear = useAppStore((s) => s.lastResetYear)
-  const resetCurrentYear = useAppStore((s) => s.resetCurrentYear)
+  const user = useUser()
 
-  const onReset = () => {
-    Alert.alert(
-      'Reset this year?',
-      'Clears every capture for the current year. Per-use credits stay intact.',
-      [
-        { text: 'Keep', style: 'cancel' },
-        {
-          text: 'Reset',
-          style: 'destructive',
-          onPress: () => {
+  const onSignOut = () => {
+    Alert.alert('Sign out?', 'You can sign back in with the same email any time.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign out',
+        style: 'destructive',
+        onPress: async () => {
+          try {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-            resetCurrentYear()
-          },
+            await signOut()
+          } catch (e) {
+            Alert.alert('Could not sign out', e instanceof Error ? e.message : 'Please try again.')
+          }
         },
-      ],
-    )
+      },
+    ])
   }
 
   return (
@@ -74,20 +73,17 @@ const SettingsScreen = () => {
           </Card>
         </Section>
 
-        <Section label="Reset">
+        <Section label="Account">
           <Card padded={false}>
-            <Row label="Last reset" value={`January 1, ${lastResetYear}`} />
-            <Pressable onPress={onReset} scaleOnPress={false}>
+            {user?.email ? <Row label="Email" value={user.email} /> : null}
+            <Pressable onPress={onSignOut} scaleOnPress={false}>
               <View style={styles.actionRow}>
                 <Text variant="body" style={{ color: theme.colors.danger.base }}>
-                  Reset this year now
+                  Sign out
                 </Text>
               </View>
             </Pressable>
           </Card>
-          <Text variant="footnote" tone="tertiary" style={styles.footnote}>
-            Captures clear automatically every January 1. Per-use credits persist across years.
-          </Text>
         </Section>
       </ScrollView>
     </Screen>
@@ -186,9 +182,5 @@ const createStyles = (theme: Theme) =>
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.separator,
-    },
-    footnote: {
-      marginHorizontal: theme.spacing.xs,
-      lineHeight: 18,
     },
   })

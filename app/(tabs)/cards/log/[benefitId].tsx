@@ -15,10 +15,8 @@ import { findBenefit, computeBenefitProgress } from '@/features/benefits'
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { isValidIsoDate, today, yesterday } from '@/lib/date'
-import { generateId } from '@/lib/id'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
-import type { BenefitLog } from '@/features/logs/types'
 
 const LogEntryScreen = () => {
   const theme = useTheme()
@@ -32,6 +30,7 @@ const LogEntryScreen = () => {
   const [date, setDate] = useState<string>(today())
   const [amount, setAmount] = useState<string>('')
   const [note, setNote] = useState<string>('')
+  const [isSaving, setIsSaving] = useState(false)
 
   if (!benefit) {
     return (
@@ -58,23 +57,27 @@ const LogEntryScreen = () => {
   const dateValid = isValidIsoDate(date)
   const numericAmount = Number.parseFloat(amount)
   const amountValid = Number.isFinite(numericAmount) && numericAmount > 0
-  const canSubmit = dateValid && amountValid
+  const canSubmit = dateValid && amountValid && !isSaving
 
   const onSave = async () => {
     if (!canSubmit) {
       Alert.alert('Check the entry', 'A valid date and dollar amount are required.')
       return
     }
-    const log: BenefitLog = {
-      id: generateId(),
-      benefitId: benefit.id,
-      date: new Date(date).toISOString(),
-      valueAmount: Math.round(numericAmount * 100) / 100,
-      note: note.trim() ? note.trim() : null,
+    setIsSaving(true)
+    try {
+      await addLog({
+        benefitId: benefit.id,
+        date,
+        valueAmountCents: Math.round(numericAmount * 100),
+        note: note.trim() ? note.trim() : null,
+      })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      router.back()
+    } catch (e) {
+      setIsSaving(false)
+      Alert.alert('Could not save', e instanceof Error ? e.message : 'Please try again.')
     }
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    await addLog(log)
-    router.back()
   }
 
   const today_ = today()

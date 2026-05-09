@@ -4,7 +4,6 @@ export {
   filterLogsForBenefit,
   filterRelevantLogs,
   remainingToBreakEven,
-  sumLogValues,
   totalCapturedThisYear,
 } from './utils'
 export type {

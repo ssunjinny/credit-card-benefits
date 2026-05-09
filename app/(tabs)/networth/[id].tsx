@@ -39,6 +39,7 @@ const EditItemScreen = () => {
   const [name, setName] = useState(item?.name ?? '')
   const [category, setCategory] = useState<CategoryMeta | null>(initialCategory)
   const [amount, setAmount] = useState(initialAmount)
+  const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
     if (!item) return
@@ -53,21 +54,26 @@ const EditItemScreen = () => {
 
   const numericAmount = Number.parseFloat(amount)
   const amountValid = Number.isFinite(numericAmount) && numericAmount >= 0
-  const canSubmit = name.trim().length > 0 && amountValid && category !== null
+  const canSubmit = name.trim().length > 0 && amountValid && category !== null && !isSaving
 
   const onSave = async () => {
     if (!canSubmit || !category) {
       Alert.alert('Check the entry', 'A name and a non-negative value are required.')
       return
     }
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    await updateItem(item.id, {
-      name: name.trim(),
-      category: category.key,
-      symbol: category.symbol,
-      amountCents: dollarsToCents(numericAmount),
-    })
-    router.back()
+    setIsSaving(true)
+    try {
+      await updateItem(item.id, {
+        name: name.trim(),
+        category: category.key,
+        amountCents: dollarsToCents(numericAmount),
+      })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      router.back()
+    } catch (e) {
+      setIsSaving(false)
+      Alert.alert('Could not save', e instanceof Error ? e.message : 'Please try again.')
+    }
   }
 
   const onDelete = () => {
@@ -77,9 +83,13 @@ const EditItemScreen = () => {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
-          await deleteItem(item.id)
-          router.back()
+          try {
+            await deleteItem(item.id)
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+            router.back()
+          } catch (e) {
+            Alert.alert('Could not delete', e instanceof Error ? e.message : 'Please try again.')
+          }
         },
       },
     ])

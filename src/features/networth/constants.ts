@@ -39,3 +39,6 @@ export const findCategory = (key: NetWorthItemCategory): CategoryMeta | null =>
 
 export const categoriesForKind = (kind: NetWorthItemKind): CategoryMeta[] =>
   ITEM_CATEGORIES.filter((meta) => meta.kind === kind)
+
+export const categoryToSymbol = (key: NetWorthItemCategory): SymbolViewProps['name'] =>
+  findCategory(key)?.symbol ?? 'square.dotted'

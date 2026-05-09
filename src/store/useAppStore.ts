@@ -1,42 +1,60 @@
 import { create } from 'zustand'
 
-import { BENEFITS, findBenefit, computeBenefitProgress } from '@/features/benefits'
+import { BENEFITS, computeBenefitProgress, findBenefit } from '@/features/benefits'
 import type { BenefitWithProgress } from '@/features/benefits'
 import type { BenefitLog } from '@/features/logs/types'
-import type { NetWorthItem } from '@/features/networth'
+import type { NetWorthItem, NetWorthItemCategory, NetWorthItemKind } from '@/features/networth'
 import { storage } from '@/lib/storage'
-import { generateId } from '@/lib/id'
-import { currentYear } from '@/lib/date'
+import { supabase } from '@/lib/supabase'
 
-const STATE_STORAGE_KEY = 'amex_tracker_state'
 const ONBOARDING_KEY = 'amex_tracker_onboarded'
-const NETWORTH_STORAGE_KEY = 'nwm_networth_items'
 
-type PersistedBenefitsState = {
-  logs: BenefitLog[]
-  lastResetYear: number
+type BenefitLogRow = {
+  id: string
+  benefit_id: string
+  log_date: string
+  value_amount_cents: number
+  note: string | null
 }
 
-type PersistedNetWorthState = {
-  items: NetWorthItem[]
+type NetWorthItemRow = {
+  id: string
+  name: string
+  kind: NetWorthItemKind
+  category: string
+  amount_cents: number
+  updated_at: string
 }
 
-type AddItemInput = Omit<NetWorthItem, 'id' | 'updatedAt'>
+type AddLogInput = {
+  benefitId: string
+  date: string
+  valueAmountCents: number
+  note: string | null
+}
 
-type UpdateItemPatch = Partial<Omit<NetWorthItem, 'id'>>
+type AddItemInput = {
+  name: string
+  kind: NetWorthItemKind
+  category: NetWorthItemCategory
+  amountCents: number
+}
+
+type UpdateItemPatch = Partial<AddItemInput>
 
 type AppStore = {
   logs: BenefitLog[]
-  lastResetYear: number
-  isLoaded: boolean
-  hasOnboarded: boolean
   items: NetWorthItem[]
+  hasOnboarded: boolean
+  isLoaded: boolean
 
-  initialize: () => Promise<void>
+  loadOnboarding: () => Promise<void>
+  loadForUser: (userId: string) => Promise<void>
+  clear: () => void
   completeOnboarding: () => Promise<void>
-  addLog: (log: BenefitLog) => Promise<void>
+
+  addLog: (input: AddLogInput) => Promise<void>
   deleteLog: (id: string) => Promise<void>
-  resetCurrentYear: () => Promise<void>
 
   addItem: (input: AddItemInput) => Promise<NetWorthItem>
   updateItem: (id: string, patch: UpdateItemPatch) => Promise<void>
@@ -46,148 +64,135 @@ type AppStore = {
   getAllBenefitsWithProgress: () => BenefitWithProgress[]
 }
 
-const persistBenefits = async (state: PersistedBenefitsState) => {
-  await storage.setItem(STATE_STORAGE_KEY, JSON.stringify(state))
+const logFromRow = (row: BenefitLogRow): BenefitLog => ({
+  id: row.id,
+  benefitId: row.benefit_id,
+  date: row.log_date,
+  valueAmountCents: row.value_amount_cents,
+  note: row.note,
+})
+
+const itemFromRow = (row: NetWorthItemRow): NetWorthItem => ({
+  id: row.id,
+  name: row.name,
+  kind: row.kind,
+  category: row.category as NetWorthItemCategory,
+  amountCents: row.amount_cents,
+  updatedAt: row.updated_at,
+})
+
+const requireUserId = async (): Promise<string> => {
+  const { data } = await supabase.auth.getSession()
+  const id = data.session?.user.id
+  if (!id) throw new Error('Not signed in')
+  return id
 }
-
-const persistNetWorth = async (state: PersistedNetWorthState) => {
-  await storage.setItem(NETWORTH_STORAGE_KEY, JSON.stringify(state))
-}
-
-const readPersistedBenefits = async (): Promise<PersistedBenefitsState | null> => {
-  const raw = await storage.getItem(STATE_STORAGE_KEY)
-  if (!raw) return null
-  try {
-    return JSON.parse(raw) as PersistedBenefitsState
-  } catch {
-    return null
-  }
-}
-
-const readPersistedNetWorth = async (): Promise<PersistedNetWorthState | null> => {
-  const raw = await storage.getItem(NETWORTH_STORAGE_KEY)
-  if (!raw) return null
-  try {
-    return JSON.parse(raw) as PersistedNetWorthState
-  } catch {
-    return null
-  }
-}
-
-const perUseBenefitIds = new Set(
-  BENEFITS.filter((benefit) => benefit.resetType === 'per_use').map((b) => b.id),
-)
-
-const dropExpiredLogs = (logs: BenefitLog[]) =>
-  logs.filter((log) => perUseBenefitIds.has(log.benefitId))
 
 export const useAppStore = create<AppStore>((set, get) => ({
   logs: [],
-  lastResetYear: currentYear(),
-  isLoaded: false,
-  hasOnboarded: false,
   items: [],
+  hasOnboarded: false,
+  isLoaded: false,
 
-  initialize: async () => {
-    const [persistedBenefits, persistedNetWorth, onboarded] = await Promise.all([
-      readPersistedBenefits(),
-      readPersistedNetWorth(),
-      storage.getItem(ONBOARDING_KEY),
+  loadOnboarding: async () => {
+    const flag = await storage.getItem(ONBOARDING_KEY)
+    set({ hasOnboarded: flag === 'true' })
+  },
+
+  loadForUser: async (userId) => {
+    set({ isLoaded: false })
+    const [logsRes, itemsRes] = await Promise.all([
+      supabase
+        .from('benefit_logs')
+        .select('id, benefit_id, log_date, value_amount_cents, note')
+        .eq('user_id', userId)
+        .order('log_date', { ascending: false }),
+      supabase
+        .from('net_worth_items')
+        .select('id, name, kind, category, amount_cents, updated_at')
+        .eq('user_id', userId)
+        .order('updated_at', { ascending: false }),
     ])
-    const year = currentYear()
-
-    const networth = persistedNetWorth ?? { items: [] }
-    if (!persistedNetWorth) {
-      await persistNetWorth(networth)
-    }
-
-    if (!persistedBenefits) {
-      const fresh: PersistedBenefitsState = { logs: [], lastResetYear: year }
-      await persistBenefits(fresh)
-      set({
-        ...fresh,
-        ...networth,
-        hasOnboarded: onboarded === 'true',
-        isLoaded: true,
-      })
-      return
-    }
-
-    if (year > persistedBenefits.lastResetYear) {
-      const next: PersistedBenefitsState = {
-        logs: dropExpiredLogs(persistedBenefits.logs),
-        lastResetYear: year,
-      }
-      await persistBenefits(next)
-      set({
-        ...next,
-        ...networth,
-        hasOnboarded: onboarded === 'true',
-        isLoaded: true,
-      })
-      return
-    }
-
+    if (logsRes.error) throw logsRes.error
+    if (itemsRes.error) throw itemsRes.error
     set({
-      logs: persistedBenefits.logs,
-      lastResetYear: persistedBenefits.lastResetYear,
-      ...networth,
-      hasOnboarded: onboarded === 'true',
+      logs: (logsRes.data ?? []).map(logFromRow),
+      items: (itemsRes.data ?? []).map(itemFromRow),
       isLoaded: true,
     })
   },
+
+  clear: () => set({ logs: [], items: [], isLoaded: false }),
 
   completeOnboarding: async () => {
     await storage.setItem(ONBOARDING_KEY, 'true')
     set({ hasOnboarded: true })
   },
 
-  addLog: async (log) => {
-    const next = [...get().logs, log]
-    set({ logs: next })
-    await persistBenefits({ logs: next, lastResetYear: get().lastResetYear })
+  addLog: async (input) => {
+    const userId = await requireUserId()
+    const { data, error } = await supabase
+      .from('benefit_logs')
+      .insert({
+        user_id: userId,
+        benefit_id: input.benefitId,
+        log_date: input.date,
+        value_amount_cents: input.valueAmountCents,
+        note: input.note,
+      })
+      .select('id, benefit_id, log_date, value_amount_cents, note')
+      .single()
+    if (error) throw error
+    const log = logFromRow(data)
+    set((s) => ({ logs: [log, ...s.logs] }))
   },
 
   deleteLog: async (id) => {
-    const next = get().logs.filter((log) => log.id !== id)
-    set({ logs: next })
-    await persistBenefits({ logs: next, lastResetYear: get().lastResetYear })
-  },
-
-  resetCurrentYear: async () => {
-    const year = currentYear()
-    const next: PersistedBenefitsState = {
-      logs: dropExpiredLogs(get().logs),
-      lastResetYear: year,
-    }
-    set({ ...next })
-    await persistBenefits(next)
+    const { error } = await supabase.from('benefit_logs').delete().eq('id', id)
+    if (error) throw error
+    set((s) => ({ logs: s.logs.filter((l) => l.id !== id) }))
   },
 
   addItem: async (input) => {
-    const item: NetWorthItem = {
-      ...input,
-      id: generateId(),
-      updatedAt: new Date().toISOString(),
-    }
-    const nextItems = [...get().items, item]
-    set({ items: nextItems })
-    await persistNetWorth({ items: nextItems })
+    const userId = await requireUserId()
+    const { data, error } = await supabase
+      .from('net_worth_items')
+      .insert({
+        user_id: userId,
+        name: input.name,
+        kind: input.kind,
+        category: input.category,
+        amount_cents: input.amountCents,
+      })
+      .select('id, name, kind, category, amount_cents, updated_at')
+      .single()
+    if (error) throw error
+    const item = itemFromRow(data)
+    set((s) => ({ items: [item, ...s.items] }))
     return item
   },
 
   updateItem: async (id, patch) => {
-    const nextItems = get().items.map((item) =>
-      item.id === id ? { ...item, ...patch, updatedAt: new Date().toISOString() } : item,
-    )
-    set({ items: nextItems })
-    await persistNetWorth({ items: nextItems })
+    const update: Record<string, unknown> = {}
+    if (patch.name !== undefined) update.name = patch.name
+    if (patch.kind !== undefined) update.kind = patch.kind
+    if (patch.category !== undefined) update.category = patch.category
+    if (patch.amountCents !== undefined) update.amount_cents = patch.amountCents
+    const { data, error } = await supabase
+      .from('net_worth_items')
+      .update(update)
+      .eq('id', id)
+      .select('id, name, kind, category, amount_cents, updated_at')
+      .single()
+    if (error) throw error
+    const item = itemFromRow(data)
+    set((s) => ({ items: s.items.map((i) => (i.id === id ? item : i)) }))
   },
 
   deleteItem: async (id) => {
-    const nextItems = get().items.filter((item) => item.id !== id)
-    set({ items: nextItems })
-    await persistNetWorth({ items: nextItems })
+    const { error } = await supabase.from('net_worth_items').delete().eq('id', id)
+    if (error) throw error
+    set((s) => ({ items: s.items.filter((i) => i.id !== id) }))
   },
 
   getBenefitProgress: (id) => {

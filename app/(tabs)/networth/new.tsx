@@ -32,10 +32,11 @@ const NewItemScreen = () => {
   const [category, setCategory] = useState<CategoryMeta>(ITEM_CATEGORIES[0])
   const [name, setName] = useState('')
   const [amount, setAmount] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const numericAmount = Number.parseFloat(amount)
   const amountValid = Number.isFinite(numericAmount) && numericAmount >= 0
-  const canSubmit = name.trim().length > 0 && amountValid
+  const canSubmit = name.trim().length > 0 && amountValid && !isSaving
 
   const handleKindChange = (next: NetWorthItemKind) => {
     if (next === kind) return
@@ -48,15 +49,20 @@ const NewItemScreen = () => {
       Alert.alert('Check the entry', 'A name and a non-negative value are required.')
       return
     }
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    await addItem({
-      name: name.trim(),
-      kind,
-      category: category.key,
-      symbol: category.symbol,
-      amountCents: dollarsToCents(numericAmount),
-    })
-    router.back()
+    setIsSaving(true)
+    try {
+      await addItem({
+        name: name.trim(),
+        kind,
+        category: category.key,
+        amountCents: dollarsToCents(numericAmount),
+      })
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      router.back()
+    } catch (e) {
+      setIsSaving(false)
+      Alert.alert('Could not save', e instanceof Error ? e.message : 'Please try again.')
+    }
   }
 
   return (

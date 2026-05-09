@@ -1,5 +1,3 @@
-import type { SymbolViewProps } from 'expo-symbols'
-
 export type NetWorthItemKind = 'asset' | 'liability'
 
 export type NetWorthItemCategory =
@@ -21,7 +19,6 @@ export type NetWorthItem = {
   name: string
   kind: NetWorthItemKind
   category: NetWorthItemCategory
-  symbol: SymbolViewProps['name']
   amountCents: number
   updatedAt: string
 }

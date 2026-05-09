@@ -102,7 +102,7 @@ const BenefitDetailScreen = () => {
               <Pressable key={log.id} onLongPress={() => onDelete(log.id)} scaleOnPress={false}>
                 <View style={[styles.logRow, index < logs.length - 1 && styles.logDivider]}>
                   <View style={styles.logMain}>
-                    <Text variant="listValue">{formatCurrency(log.valueAmount)}</Text>
+                    <Text variant="listValue">{formatCurrency(log.valueAmountCents / 100)}</Text>
                     <Text variant="footnote" tone="tertiary">
                       {formatDateLabel(log.date)}
                     </Text>

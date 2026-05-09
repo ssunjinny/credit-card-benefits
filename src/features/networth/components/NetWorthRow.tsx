@@ -5,7 +5,7 @@ import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
 import { Icon, Pressable, Text } from '@/ui'
 
-import { findCategory } from '../constants'
+import { categoryToSymbol, findCategory } from '../constants'
 import type { NetWorthItem } from '../types'
 import { centsToDollars } from '../utils'
 
@@ -26,7 +26,7 @@ export const NetWorthRow = ({ item, onPress, isLast }: NetWorthRowProps) => {
     <Pressable onPress={onPress} style={styles.container}>
       <View style={[styles.row, !isLast && styles.divider]}>
         <View style={styles.leading}>
-          <Icon name={item.symbol} size={22} tone="signal" />
+          <Icon name={categoryToSymbol(item.category)} size={22} tone="signal" />
         </View>
         <View style={styles.middle}>
           <Text variant="headline" numberOfLines={1}>

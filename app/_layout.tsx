@@ -14,6 +14,7 @@ import {
   GeistMono_700Bold,
 } from '@expo-google-fonts/geist-mono'
 
+import { AuthProvider, useIsAuthLoading, useSession } from '@/lib/auth'
 import { ThemeProvider, useTheme, useThemeReady } from '@/features/theme'
 import { Skeleton } from '@/ui'
 import { useAppStore } from '@/store/useAppStore'
@@ -21,7 +22,11 @@ import { useAppStore } from '@/store/useAppStore'
 const RootStack = () => {
   const theme = useTheme()
   const themeReady = useThemeReady()
-  const initialize = useAppStore((s) => s.initialize)
+  const session = useSession()
+  const authLoading = useIsAuthLoading()
+  const loadOnboarding = useAppStore((s) => s.loadOnboarding)
+  const loadForUser = useAppStore((s) => s.loadForUser)
+  const clearStore = useAppStore((s) => s.clear)
   const isLoaded = useAppStore((s) => s.isLoaded)
   const hasOnboarded = useAppStore((s) => s.hasOnboarded)
   const router = useRouter()
@@ -38,20 +43,38 @@ const RootStack = () => {
   })
 
   useEffect(() => {
-    initialize()
-  }, [initialize])
+    loadOnboarding()
+  }, [loadOnboarding])
 
   useEffect(() => {
-    if (!isLoaded) return
-    const inOnboarding = segments[0] === 'onboarding'
-    if (!hasOnboarded && !inOnboarding) {
+    if (session?.user) {
+      loadForUser(session.user.id).catch(() => {
+        // surfaced via UI; nothing to do at the layout level
+      })
+    } else {
+      clearStore()
+    }
+  }, [session?.user, loadForUser, clearStore])
+
+  const userDataReady = !session || isLoaded
+  const bootReady = themeReady && fontsLoaded && !authLoading && userDataReady
+
+  useEffect(() => {
+    if (!bootReady) return
+    const root = segments[0]
+    const inAuth = root === 'auth'
+    const inOnboarding = root === 'onboarding'
+
+    if (!session && !inAuth) {
+      router.replace('/auth/sign-in')
+    } else if (session && !hasOnboarded && !inOnboarding) {
       router.replace('/onboarding')
-    } else if (hasOnboarded && inOnboarding) {
+    } else if (session && hasOnboarded && (inAuth || inOnboarding)) {
       router.replace('/')
     }
-  }, [isLoaded, hasOnboarded, segments, router])
+  }, [bootReady, session, hasOnboarded, segments, router])
 
-  if (!themeReady || !isLoaded || !fontsLoaded) {
+  if (!bootReady) {
     return <BootSkeleton />
   }
 
@@ -72,6 +95,7 @@ const RootStack = () => {
       }}
     >
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
       <Stack.Screen name="settings/theme" options={{ title: 'Theme' }} />
@@ -97,8 +121,10 @@ const RootLayout = () => {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <ThemeProvider>
-          <ThemedStatusBar />
-          <RootStack />
+          <AuthProvider>
+            <ThemedStatusBar />
+            <RootStack />
+          </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
