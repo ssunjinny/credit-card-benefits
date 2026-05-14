@@ -1,4 +1,10 @@
-export type { NetWorthItem, NetWorthItemCategory, NetWorthItemKind, NetWorthSummary } from './types'
+export type {
+  NetWorthItem,
+  NetWorthItemCategory,
+  NetWorthItemKind,
+  NetWorthSnapshot,
+  NetWorthSummary,
+} from './types'
 export { ITEM_CATEGORIES, categoriesForKind, findCategory } from './constants'
 export type { CategoryMeta } from './constants'
 export {

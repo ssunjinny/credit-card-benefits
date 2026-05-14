@@ -8,6 +8,8 @@ export type CategoryMeta = {
 
 export const ITEM_CATEGORIES: CategoryMeta[] = [
   { key: 'cash', label: 'Cash', kind: 'asset' },
+  { key: 'checking_account', label: 'Checking account', kind: 'asset' },
+  { key: 'savings_account', label: 'Savings account', kind: 'asset' },
   { key: 'investment', label: 'Investments', kind: 'asset' },
   { key: 'crypto', label: 'Crypto', kind: 'asset' },
   { key: 'real_estate', label: 'Real estate', kind: 'asset' },

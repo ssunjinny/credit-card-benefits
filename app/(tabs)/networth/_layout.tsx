@@ -23,7 +23,9 @@ const NetWorthStackLayout = () => {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="new" options={{ presentation: 'modal' }} />
-      <Stack.Screen name="[id]" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="[id]" options={{ title: '' }} />
+      <Stack.Screen name="edit/[id]" options={{ presentation: 'modal', title: 'Edit' }} />
+      <Stack.Screen name="log/[id]" options={{ presentation: 'modal', title: 'Log value' }} />
     </Stack>
   )
 }

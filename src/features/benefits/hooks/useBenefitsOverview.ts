@@ -12,12 +12,6 @@ const statusOrder: Record<BenefitStatus, number> = {
   captured: 2,
 }
 
-export type StatusCounts = {
-  captured: number
-  inProgress: number
-  untouched: number
-}
-
 export const useBenefitsOverview = () => {
   const logs = useAppStore((state) => state.logs)
 
@@ -33,26 +27,16 @@ export const useBenefitsOverview = () => {
       return a.name.localeCompare(b.name)
     })
 
-    const counts: StatusCounts = benefits.reduce<StatusCounts>(
-      (acc, benefit) => {
-        acc[benefit.progress.status] += 1
-        return acc
-      },
-      { captured: 0, inProgress: 0, untouched: 0 },
-    )
-
     const totalCaptured = totalCapturedThisYear(logs)
     const remaining = remainingToBreakEven(totalCaptured, ANNUAL_FEE)
     const utilization = Math.min(100, (totalCaptured / ANNUAL_FEE) * 100)
 
     return {
       benefits: sorted,
-      counts,
       totalCaptured,
       remaining,
       utilization,
       annualFee: ANNUAL_FEE,
-      hasAnyLogs: logs.length > 0,
     }
   }, [logs])
 }

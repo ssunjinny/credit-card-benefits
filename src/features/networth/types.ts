@@ -2,6 +2,8 @@ export type NetWorthItemKind = 'asset' | 'liability'
 
 export type NetWorthItemCategory =
   | 'cash'
+  | 'checking_account'
+  | 'savings_account'
   | 'investment'
   | 'crypto'
   | 'real_estate'
@@ -29,4 +31,13 @@ export type NetWorthSummary = {
   totalAssetsCents: number
   totalLiabilitiesCents: number
   netCents: number
+}
+
+export type NetWorthSnapshot = {
+  id: string
+  itemId: string
+  amountCents: number
+  capturedAt: string
+  note: string | null
+  createdAt: string
 }
