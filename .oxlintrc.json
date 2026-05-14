@@ -76,5 +76,5 @@
       }
     }
   ],
-  "ignorePatterns": ["node_modules", "ios", "android", ".expo", "dist", "build"]
+  "ignorePatterns": ["node_modules", "ios", "android", ".expo", "dist", "build", "supabase/functions"]
 }

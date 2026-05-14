@@ -19,8 +19,11 @@ import {
   type CategoryMeta,
 } from '@/features/networth'
 import { useTheme, type Theme } from '@/features/theme'
+import { AMOUNT_MAX_CENTS, NAME_MAX_LENGTH } from '@/lib/constants'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
+
+const AMOUNT_MAX_DOLLARS = AMOUNT_MAX_CENTS / 100
 
 const EditItemScreen = () => {
   const theme = useTheme()
@@ -53,7 +56,8 @@ const EditItemScreen = () => {
   }
 
   const numericAmount = Number.parseFloat(amount)
-  const amountValid = Number.isFinite(numericAmount) && numericAmount >= 0
+  const amountValid =
+    Number.isFinite(numericAmount) && numericAmount >= 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = name.trim().length > 0 && amountValid && category !== null && !isSaving
 
   const onSave = async () => {
@@ -130,6 +134,7 @@ const EditItemScreen = () => {
               onChangeText={setName}
               placeholderTextColor={theme.colors.label.tertiary}
               autoCapitalize="words"
+              maxLength={NAME_MAX_LENGTH}
               style={[styles.textInput, { color: theme.colors.label.primary }]}
             />
           </Card>

@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
-import { Alert, ScrollView, StyleSheet, View } from 'react-native'
+import { Alert, Linking, ScrollView, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
 import { ANNUAL_FEE } from '@/features/benefits'
 import { themes, useSetTheme, useTheme, type Theme } from '@/features/theme'
-import { signOut, useUser } from '@/lib/auth'
+import { deleteAccount, signOut, useUser } from '@/lib/auth'
+import { PRIVACY_POLICY_URL, TERMS_URL } from '@/lib/constants'
 import { formatCurrency } from '@/lib/currency'
 import { currentYear } from '@/lib/date'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
@@ -33,6 +34,31 @@ const SettingsScreen = () => {
         },
       },
     ])
+  }
+
+  const onDeleteAccount = () => {
+    Alert.alert(
+      'Delete your account?',
+      'This permanently erases your benefit captures and net worth entries. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete account',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+              await deleteAccount()
+            } catch (e) {
+              Alert.alert(
+                'Could not delete account',
+                e instanceof Error ? e.message : 'Please try again.',
+              )
+            }
+          },
+        },
+      ],
+    )
   }
 
   return (
@@ -77,10 +103,34 @@ const SettingsScreen = () => {
           <Card padded={false}>
             {user?.email ? <Row label="Email" value={user.email} /> : null}
             <Pressable onPress={onSignOut} scaleOnPress={false}>
-              <View style={styles.actionRow}>
+              <View style={[styles.actionRow, styles.divider]}>
                 <Text variant="body" style={{ color: theme.colors.danger.base }}>
                   Sign out
                 </Text>
+              </View>
+            </Pressable>
+            <Pressable onPress={onDeleteAccount} scaleOnPress={false}>
+              <View style={styles.actionRow}>
+                <Text variant="body" style={{ color: theme.colors.danger.base }}>
+                  Delete account
+                </Text>
+              </View>
+            </Pressable>
+          </Card>
+        </Section>
+
+        <Section label="Legal">
+          <Card padded={false}>
+            <Pressable onPress={() => Linking.openURL(PRIVACY_POLICY_URL)} scaleOnPress={false}>
+              <View style={[styles.linkRow, styles.divider]}>
+                <Text variant="body">Privacy policy</Text>
+                <Icon name="arrow.up.right" size={14} tone="tertiary" />
+              </View>
+            </Pressable>
+            <Pressable onPress={() => Linking.openURL(TERMS_URL)} scaleOnPress={false}>
+              <View style={styles.linkRow}>
+                <Text variant="body">Terms of service</Text>
+                <Icon name="arrow.up.right" size={14} tone="tertiary" />
               </View>
             </Pressable>
           </Card>

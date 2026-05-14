@@ -19,8 +19,11 @@ import {
   type NetWorthItemKind,
 } from '@/features/networth'
 import { useTheme, type Theme } from '@/features/theme'
+import { AMOUNT_MAX_CENTS, NAME_MAX_LENGTH } from '@/lib/constants'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
+
+const AMOUNT_MAX_DOLLARS = AMOUNT_MAX_CENTS / 100
 
 const NewItemScreen = () => {
   const theme = useTheme()
@@ -35,7 +38,8 @@ const NewItemScreen = () => {
   const [isSaving, setIsSaving] = useState(false)
 
   const numericAmount = Number.parseFloat(amount)
-  const amountValid = Number.isFinite(numericAmount) && numericAmount >= 0
+  const amountValid =
+    Number.isFinite(numericAmount) && numericAmount >= 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = name.trim().length > 0 && amountValid && !isSaving
 
   const handleKindChange = (next: NetWorthItemKind) => {
@@ -103,6 +107,7 @@ const NewItemScreen = () => {
               placeholder={kind === 'asset' ? 'e.g. Brokerage' : 'e.g. Auto loan'}
               placeholderTextColor={theme.colors.label.tertiary}
               autoCapitalize="words"
+              maxLength={NAME_MAX_LENGTH}
               style={[styles.textInput, { color: theme.colors.label.primary }]}
             />
           </Card>

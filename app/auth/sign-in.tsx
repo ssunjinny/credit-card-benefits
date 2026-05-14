@@ -10,6 +10,7 @@ import {
 import { useRouter } from 'expo-router'
 
 import { signInWithEmail } from '@/lib/auth'
+import { isValidEmail } from '@/lib/email'
 import { useTheme, type Theme } from '@/features/theme'
 import { Button, Card, Pressable, Screen, Text } from '@/ui'
 
@@ -23,7 +24,7 @@ const SignInScreen = () => {
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const canSubmit = email.includes('@') && password.length >= 8 && !isSubmitting
+  const canSubmit = isValidEmail(email) && password.length >= 8 && !isSubmitting
 
   const onSubmit = async () => {
     if (!canSubmit) return
@@ -32,7 +33,7 @@ const SignInScreen = () => {
     try {
       await signInWithEmail(email.trim(), password)
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not sign in.')
+      setError(e instanceof Error ? e.message : 'Email or password is incorrect.')
     } finally {
       setIsSubmitting(false)
     }

@@ -13,10 +13,13 @@ import * as Haptics from 'expo-haptics'
 
 import { findBenefit, computeBenefitProgress } from '@/features/benefits'
 import { useTheme, type Theme } from '@/features/theme'
+import { AMOUNT_MAX_CENTS, NOTE_MAX_LENGTH } from '@/lib/constants'
 import { formatCurrency } from '@/lib/currency'
 import { isValidIsoDate, today, yesterday } from '@/lib/date'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
+
+const AMOUNT_MAX_DOLLARS = AMOUNT_MAX_CENTS / 100
 
 const LogEntryScreen = () => {
   const theme = useTheme()
@@ -54,9 +57,11 @@ const LogEntryScreen = () => {
       ? `Up to ${formatCurrency(remaining)} remaining this year.`
       : 'How much value did you actually receive?'
 
-  const dateValid = isValidIsoDate(date)
+  const isNotFuture = isValidIsoDate(date) && date <= today()
+  const dateValid = isValidIsoDate(date) && isNotFuture
   const numericAmount = Number.parseFloat(amount)
-  const amountValid = Number.isFinite(numericAmount) && numericAmount > 0
+  const amountValid =
+    Number.isFinite(numericAmount) && numericAmount > 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = dateValid && amountValid && !isSaving
 
   const onSave = async () => {
@@ -171,6 +176,7 @@ const LogEntryScreen = () => {
               placeholder="e.g. Centurion Lounge, JFK"
               placeholderTextColor={theme.colors.label.tertiary}
               multiline
+              maxLength={NOTE_MAX_LENGTH}
               style={[styles.textInput, styles.noteInput, { color: theme.colors.label.primary }]}
             />
           </Card>

@@ -11,6 +11,7 @@ import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
 import { signUpWithEmail } from '@/lib/auth'
+import { isValidEmail } from '@/lib/email'
 import { useTheme, type Theme } from '@/features/theme'
 import { Button, Card, Icon, Pressable, Screen, Text } from '@/ui'
 
@@ -27,7 +28,7 @@ const SignUpScreen = () => {
   const [confirmationEmail, setConfirmationEmail] = useState<string | null>(null)
 
   const canSubmit =
-    email.includes('@') && password.length >= 8 && confirmPassword.length > 0 && !isSubmitting
+    isValidEmail(email) && password.length >= 8 && confirmPassword.length > 0 && !isSubmitting
 
   const onSubmit = async () => {
     if (!canSubmit) return
