@@ -25,15 +25,8 @@ export type NetWorthItem = {
   updatedAt: string
 }
 
-export type CategoryTotal = {
-  category: NetWorthItemCategory
-  totalCents: number
-  itemCount: number
-}
-
 export type NetWorthSummary = {
   totalAssetsCents: number
   totalLiabilitiesCents: number
   netCents: number
-  asOf: string | null
 }

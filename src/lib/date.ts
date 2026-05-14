@@ -28,6 +28,13 @@ export const daysBetween = (fromIso: string, toIso: string) => {
   return Math.floor((to - from) / MS_PER_DAY)
 }
 
+export const formatLogDateLabel = (iso: string) => {
+  const days = daysBetween(iso, today())
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  return formatDateLabel(iso)
+}
+
 export const relativeDayLabel = (iso: string) => {
   const days = daysBetween(iso, today())
   if (days == null) return formatDateLabel(iso)

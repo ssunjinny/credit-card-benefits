@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native'
 
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
-import { relativeDayLabel } from '@/lib/date'
 import { Card, Text } from '@/ui'
 
 import { centsToDollars } from '../utils'
@@ -12,17 +11,12 @@ export type NetWorthHeroCardProps = {
   netCents: number
   totalAssetsCents: number
   totalLiabilitiesCents: number
-  asOf: string | null
 }
-
-const updatedLabel = (asOf: string | null) =>
-  asOf ? `Updated ${relativeDayLabel(asOf)}` : 'Nothing tracked yet'
 
 export const NetWorthHeroCard = ({
   netCents,
   totalAssetsCents,
   totalLiabilitiesCents,
-  asOf,
 }: NetWorthHeroCardProps) => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
@@ -34,9 +28,6 @@ export const NetWorthHeroCard = ({
       </Text>
       <Text variant="hero" style={styles.heroNumber}>
         {formatCurrency(centsToDollars(netCents))}
-      </Text>
-      <Text variant="footnote" tone="tertiary" style={styles.subline}>
-        {updatedLabel(asOf)}
       </Text>
       <View style={styles.footer}>
         <View style={styles.footerCell}>
@@ -65,9 +56,6 @@ const createStyles = (theme: Theme) =>
     heroNumber: {
       marginTop: theme.spacing.xs,
       color: theme.colors.signal.base,
-    },
-    subline: {
-      marginTop: theme.spacing.xs,
     },
     footer: {
       marginTop: theme.spacing.xl,

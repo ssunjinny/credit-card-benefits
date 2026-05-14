@@ -2,7 +2,6 @@ import { useMemo } from 'react'
 import { ScrollView, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
 
-import { BalanceBreakdown } from '@/features/networth/components/BalanceBreakdown'
 import { NetWorthEmpty } from '@/features/networth/components/NetWorthEmpty'
 import { NetWorthHeroCard } from '@/features/networth/components/NetWorthHeroCard'
 import { NetWorthRow } from '@/features/networth/components/NetWorthRow'
@@ -46,12 +45,9 @@ const NetWorthScreen = () => {
           netCents={summary.netCents}
           totalAssetsCents={summary.totalAssetsCents}
           totalLiabilitiesCents={summary.totalLiabilitiesCents}
-          asOf={summary.asOf}
         />
 
         {!hasItems ? <NetWorthEmpty /> : null}
-
-        <BalanceBreakdown totals={summary.byCategory} />
 
         {assets.length > 0 ? (
           <View style={styles.section}>

@@ -18,8 +18,10 @@ import {
   findCategory,
   type CategoryMeta,
 } from '@/features/networth'
+import { CategorySelect } from '@/features/networth/components/CategorySelect'
 import { useTheme, type Theme } from '@/features/theme'
 import { AMOUNT_MAX_CENTS, NAME_MAX_LENGTH } from '@/lib/constants'
+import { formatAmountInput, parseAmount } from '@/lib/currency'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
@@ -37,7 +39,7 @@ const EditItemScreen = () => {
   const initialCategory = item
     ? (findCategory(item.category) ?? categoriesForKind(item.kind)[0])
     : null
-  const initialAmount = item ? centsToDollars(item.amountCents).toString() : ''
+  const initialAmount = item ? formatAmountInput(centsToDollars(item.amountCents).toString()) : ''
 
   const [name, setName] = useState(item?.name ?? '')
   const [category, setCategory] = useState<CategoryMeta | null>(initialCategory)
@@ -48,14 +50,14 @@ const EditItemScreen = () => {
     if (!item) return
     setName(item.name)
     setCategory(findCategory(item.category) ?? categoriesForKind(item.kind)[0])
-    setAmount(centsToDollars(item.amountCents).toString())
+    setAmount(formatAmountInput(centsToDollars(item.amountCents).toString()))
   }, [item])
 
   if (!item) {
     return <NotFound />
   }
 
-  const numericAmount = Number.parseFloat(amount)
+  const numericAmount = parseAmount(amount)
   const amountValid =
     Number.isFinite(numericAmount) && numericAmount >= 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = name.trim().length > 0 && amountValid && category !== null && !isSaving
@@ -113,9 +115,9 @@ const EditItemScreen = () => {
           ),
           headerRight: () => (
             <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
-              <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
-                Save
-              </Text>
+              <View style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}>
+                <Icon name="checkmark" size={16} tone="onSignal" weight="bold" />
+              </View>
             </Pressable>
           ),
         }}
@@ -143,7 +145,7 @@ const EditItemScreen = () => {
             Category
           </Text>
           {category ? (
-            <CategoryPicker kind={item.kind} value={category} onChange={setCategory} />
+            <CategorySelect kind={item.kind} value={category} onChange={setCategory} />
           ) : null}
 
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
@@ -155,7 +157,7 @@ const EditItemScreen = () => {
             </Text>
             <TextInput
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(raw) => setAmount(formatAmountInput(raw))}
               placeholder="0"
               placeholderTextColor={theme.colors.label.tertiary}
               keyboardType="decimal-pad"
@@ -171,40 +173,6 @@ const EditItemScreen = () => {
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
-  )
-}
-
-type CategoryPickerProps = {
-  kind: 'asset' | 'liability'
-  value: CategoryMeta
-  onChange: (next: CategoryMeta) => void
-}
-
-const CategoryPicker = ({ kind, value, onChange }: CategoryPickerProps) => {
-  const theme = useTheme()
-  const styles = useMemo(() => createStyles(theme), [theme])
-  const options = categoriesForKind(kind)
-
-  return (
-    <Card padded={false}>
-      {options.map((option, index) => {
-        const isLast = index === options.length - 1
-        const isSelected = option.key === value.key
-        return (
-          <Pressable
-            key={option.key}
-            onPress={() => onChange(option)}
-            style={[styles.categoryRow, !isLast && styles.divider]}
-            scaleOnPress={false}
-          >
-            <Text variant="body" style={styles.categoryLabel}>
-              {option.label}
-            </Text>
-            {isSelected ? <Icon name="checkmark" size={18} tone="signal" /> : null}
-          </Pressable>
-        )
-      })}
-    </Card>
   )
 }
 
@@ -266,24 +234,21 @@ const createStyles = (theme: Theme) =>
       fontFamily: 'GeistMono_600SemiBold',
       paddingVertical: theme.spacing.base,
     },
-    categoryRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
-      gap: theme.spacing.md,
-    },
-    divider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.separator,
-    },
-    categoryLabel: {
-      flex: 1,
-    },
     deleteAction: {
       marginTop: theme.spacing.xl,
       alignItems: 'center',
       paddingVertical: theme.spacing.md,
+    },
+    saveButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.signal.base,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    saveButtonDisabled: {
+      opacity: 0.35,
     },
     notFound: {
       flex: 1,

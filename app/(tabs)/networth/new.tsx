@@ -18,8 +18,10 @@ import {
   type CategoryMeta,
   type NetWorthItemKind,
 } from '@/features/networth'
+import { CategorySelect } from '@/features/networth/components/CategorySelect'
 import { useTheme, type Theme } from '@/features/theme'
 import { AMOUNT_MAX_CENTS, NAME_MAX_LENGTH } from '@/lib/constants'
+import { formatAmountInput, parseAmount } from '@/lib/currency'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
@@ -37,7 +39,7 @@ const NewItemScreen = () => {
   const [amount, setAmount] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
-  const numericAmount = Number.parseFloat(amount)
+  const numericAmount = parseAmount(amount)
   const amountValid =
     Number.isFinite(numericAmount) && numericAmount >= 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = name.trim().length > 0 && amountValid && !isSaving
@@ -83,9 +85,9 @@ const NewItemScreen = () => {
           ),
           headerRight: () => (
             <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
-              <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
-                Save
-              </Text>
+              <View style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}>
+                <Icon name="checkmark" size={16} tone="onSignal" weight="bold" />
+              </View>
             </Pressable>
           ),
         }}
@@ -115,7 +117,7 @@ const NewItemScreen = () => {
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
             Category
           </Text>
-          <CategoryPicker kind={kind} value={category} onChange={setCategory} />
+          <CategorySelect kind={kind} value={category} onChange={setCategory} />
 
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
             {kind === 'asset' ? 'Value' : 'Amount owed'}
@@ -126,7 +128,7 @@ const NewItemScreen = () => {
             </Text>
             <TextInput
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(raw) => setAmount(formatAmountInput(raw))}
               placeholder="0"
               placeholderTextColor={theme.colors.label.tertiary}
               keyboardType="decimal-pad"
@@ -180,40 +182,6 @@ const KindPill = ({ label, active, onPress }: KindPillProps) => {
         {label}
       </Text>
     </Pressable>
-  )
-}
-
-type CategoryPickerProps = {
-  kind: NetWorthItemKind
-  value: CategoryMeta
-  onChange: (next: CategoryMeta) => void
-}
-
-const CategoryPicker = ({ kind, value, onChange }: CategoryPickerProps) => {
-  const theme = useTheme()
-  const styles = useMemo(() => createStyles(theme), [theme])
-  const options = categoriesForKind(kind)
-
-  return (
-    <Card padded={false}>
-      {options.map((option, index) => {
-        const isLast = index === options.length - 1
-        const isSelected = option.key === value.key
-        return (
-          <Pressable
-            key={option.key}
-            onPress={() => onChange(option)}
-            style={[styles.categoryRow, !isLast && styles.divider]}
-            scaleOnPress={false}
-          >
-            <Text variant="body" style={styles.categoryLabel}>
-              {option.label}
-            </Text>
-            {isSelected ? <Icon name="checkmark" size={18} tone="signal" /> : null}
-          </Pressable>
-        )
-      })}
-    </Card>
   )
 }
 
@@ -272,18 +240,15 @@ const createStyles = (theme: Theme) =>
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: theme.colors.border,
     },
-    categoryRow: {
-      flexDirection: 'row',
+    saveButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.signal.base,
       alignItems: 'center',
-      paddingHorizontal: theme.spacing.lg,
-      paddingVertical: theme.spacing.md,
-      gap: theme.spacing.md,
+      justifyContent: 'center',
     },
-    divider: {
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: theme.colors.separator,
-    },
-    categoryLabel: {
-      flex: 1,
+    saveButtonDisabled: {
+      opacity: 0.35,
     },
   })

@@ -8,14 +8,15 @@ import {
   TextInput,
   View,
 } from 'react-native'
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
 import { findBenefit, computeBenefitProgress } from '@/features/benefits'
 import { useTheme, type Theme } from '@/features/theme'
 import { AMOUNT_MAX_CENTS, NOTE_MAX_LENGTH } from '@/lib/constants'
-import { formatCurrency } from '@/lib/currency'
-import { isValidIsoDate, today, yesterday } from '@/lib/date'
+import { formatAmountInput, formatCurrency, parseAmount } from '@/lib/currency'
+import { formatLogDateLabel, isoDateOnly, isValidIsoDate, today, yesterday } from '@/lib/date'
 import { useAppStore } from '@/store/useAppStore'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
@@ -34,6 +35,7 @@ const LogEntryScreen = () => {
   const [amount, setAmount] = useState<string>('')
   const [note, setNote] = useState<string>('')
   const [isSaving, setIsSaving] = useState(false)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
 
   if (!benefit) {
     return (
@@ -59,7 +61,7 @@ const LogEntryScreen = () => {
 
   const isNotFuture = isValidIsoDate(date) && date <= today()
   const dateValid = isValidIsoDate(date) && isNotFuture
-  const numericAmount = Number.parseFloat(amount)
+  const numericAmount = parseAmount(amount)
   const amountValid =
     Number.isFinite(numericAmount) && numericAmount > 0 && numericAmount <= AMOUNT_MAX_DOLLARS
   const canSubmit = dateValid && amountValid && !isSaving
@@ -102,9 +104,9 @@ const LogEntryScreen = () => {
           ),
           headerRight: () => (
             <Pressable onPress={onSave} disabled={!canSubmit} hitSlop={10} scaleOnPress={false}>
-              <Text variant="headline" tone={canSubmit ? 'signal' : 'tertiary'}>
-                Save
-              </Text>
+              <View style={[styles.saveButton, !canSubmit && styles.saveButtonDisabled]}>
+                <Icon name="checkmark" size={16} tone="onSignal" weight="bold" />
+              </View>
             </Pressable>
           ),
         }}
@@ -123,26 +125,45 @@ const LogEntryScreen = () => {
             Date
           </Text>
           <View style={styles.chipRow}>
-            <DateChip label="Today" active={date === today_} onPress={() => setDate(today_)} />
+            <DateChip
+              label="Today"
+              active={date === today_}
+              onPress={() => {
+                setDate(today_)
+                setIsPickerOpen(false)
+              }}
+            />
             <DateChip
               label="Yesterday"
               active={date === yesterday_}
-              onPress={() => setDate(yesterday_)}
+              onPress={() => {
+                setDate(yesterday_)
+                setIsPickerOpen(false)
+              }}
             />
           </View>
-          <Card padded={false} style={styles.inputCard}>
-            <TextInput
-              value={date}
-              onChangeText={setDate}
-              placeholder="YYYY-MM-DD"
-              placeholderTextColor={theme.colors.label.tertiary}
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={[
-                styles.textInput,
-                { color: dateValid ? theme.colors.label.primary : theme.colors.danger.base },
-              ]}
-            />
+          <Card padded={false}>
+            <Pressable onPress={() => setIsPickerOpen((v) => !v)} scaleOnPress={false}>
+              <View style={styles.dateRow}>
+                <Text variant="body">{formatLogDateLabel(date)}</Text>
+                <Icon name="calendar" size={16} tone="tertiary" />
+              </View>
+            </Pressable>
+            {isPickerOpen ? (
+              <View style={styles.pickerWrap}>
+                <DateTimePicker
+                  value={new Date(`${date}T00:00:00`)}
+                  mode="date"
+                  display="inline"
+                  maximumDate={new Date()}
+                  themeVariant={theme.isDark ? 'dark' : 'light'}
+                  accentColor={theme.colors.signal.base}
+                  onChange={(_event: DateTimePickerEvent, selected?: Date) => {
+                    if (selected) setDate(isoDateOnly(selected))
+                  }}
+                />
+              </View>
+            ) : null}
           </Card>
 
           <Text variant="sectionHeader" tone="tertiary" style={styles.sectionGap}>
@@ -154,7 +175,7 @@ const LogEntryScreen = () => {
             </Text>
             <TextInput
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(raw) => setAmount(formatAmountInput(raw))}
               placeholder="0"
               placeholderTextColor={theme.colors.label.tertiary}
               keyboardType="decimal-pad"
@@ -247,6 +268,17 @@ const createStyles = (theme: Theme) =>
     inputCard: {
       paddingHorizontal: theme.spacing.base,
     },
+    dateRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.base,
+    },
+    pickerWrap: {
+      paddingHorizontal: theme.spacing.xs,
+      paddingBottom: theme.spacing.xs,
+    },
     textInput: {
       paddingVertical: theme.spacing.base,
       fontSize: 17,
@@ -274,5 +306,16 @@ const createStyles = (theme: Theme) =>
     hint: {
       marginTop: theme.spacing.xs,
       paddingHorizontal: theme.spacing.xs,
+    },
+    saveButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: theme.colors.signal.base,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    saveButtonDisabled: {
+      opacity: 0.35,
     },
   })
