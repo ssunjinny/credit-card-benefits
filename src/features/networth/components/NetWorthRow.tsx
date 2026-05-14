@@ -3,9 +3,9 @@ import { StyleSheet, View } from 'react-native'
 
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
-import { Icon, Pressable, Text } from '@/ui'
+import { Pressable, Text } from '@/ui'
 
-import { categoryToSymbol, findCategory } from '../constants'
+import { findCategory } from '../constants'
 import type { NetWorthItem } from '../types'
 import { centsToDollars } from '../utils'
 
@@ -25,9 +25,6 @@ export const NetWorthRow = ({ item, onPress, isLast }: NetWorthRowProps) => {
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={[styles.row, !isLast && styles.divider]}>
-        <View style={styles.leading}>
-          <Icon name={categoryToSymbol(item.category)} size={22} tone="signal" />
-        </View>
         <View style={styles.middle}>
           <Text variant="headline" numberOfLines={1}>
             {item.name}
@@ -60,10 +57,6 @@ const createStyles = (theme: Theme) =>
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.separator,
-    },
-    leading: {
-      width: 32,
-      alignItems: 'center',
     },
     middle: {
       flex: 1,

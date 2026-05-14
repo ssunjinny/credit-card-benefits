@@ -97,8 +97,6 @@ const RootStack = () => {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="auth" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-      <Stack.Screen name="settings/index" options={{ title: 'Settings' }} />
-      <Stack.Screen name="settings/theme" options={{ title: 'Theme' }} />
     </Stack>
   )
 }

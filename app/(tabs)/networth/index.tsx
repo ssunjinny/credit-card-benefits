@@ -37,9 +37,6 @@ const NetWorthScreen = () => {
     <Screen>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topBar}>
-          <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
-            <Icon name="gearshape" size={22} tone="tertiary" />
-          </Pressable>
           <Pressable onPress={() => router.push('/networth/new')} hitSlop={12} scaleOnPress={false}>
             <Icon name="plus" size={22} tone="signal" />
           </Pressable>
@@ -107,7 +104,7 @@ const createStyles = (theme: Theme) =>
     },
     topBar: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end',
       alignItems: 'center',
       paddingTop: theme.spacing.sm,
     },

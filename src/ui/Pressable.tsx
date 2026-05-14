@@ -11,14 +11,12 @@ import { useTheme } from '@/features/theme'
 const PRESS_FEEDBACK_SCALE = 0.97
 const PRESS_FEEDBACK_OPACITY = 0.92
 
-const AnimatedPressable = Animated.createAnimatedComponent(RNPressable)
-
 export type PressableProps = RNPressableProps & {
   scaleOnPress?: boolean
 }
 
 export const Pressable = forwardRef<View, PressableProps>(
-  ({ scaleOnPress = true, onPressIn, onPressOut, style, ...rest }, ref) => {
+  ({ scaleOnPress = true, onPressIn, onPressOut, style, children, ...rest }, ref) => {
     const theme = useTheme()
     const scale = useSharedValue(1)
     const opacity = useSharedValue(1)
@@ -45,13 +43,19 @@ export const Pressable = forwardRef<View, PressableProps>(
     }
 
     return (
-      <AnimatedPressable
+      <RNPressable
         ref={ref}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[animatedStyle, style]}
+        style={style}
         {...rest}
-      />
+      >
+        {typeof children === 'function' ? (
+          (state) => <Animated.View style={animatedStyle}>{children(state)}</Animated.View>
+        ) : (
+          <Animated.View style={animatedStyle}>{children}</Animated.View>
+        )}
+      </RNPressable>
     )
   },
 )

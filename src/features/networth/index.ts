@@ -5,7 +5,7 @@ export type {
   NetWorthItemKind,
   NetWorthSummary,
 } from './types'
-export { ITEM_CATEGORIES, categoriesForKind, categoryToSymbol, findCategory } from './constants'
+export { ITEM_CATEGORIES, categoriesForKind, findCategory } from './constants'
 export type { CategoryMeta } from './constants'
 export {
   centsToDollars,

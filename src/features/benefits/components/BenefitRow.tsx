@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native'
 
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
-import { Icon, Pressable, StatusBadge, Text } from '@/ui'
+import { Pressable, StatusBadge, Text } from '@/ui'
 
 import type { BenefitWithProgress } from '../types'
 
@@ -31,9 +31,6 @@ export const BenefitRow = ({ benefit, onPress, isLast }: BenefitRowProps) => {
   return (
     <Pressable onPress={onPress} style={styles.container}>
       <View style={[styles.row, !isLast && styles.divider]}>
-        <View style={styles.leading}>
-          <Icon name={benefit.symbol} size={22} tone="signal" />
-        </View>
         <View style={styles.middle}>
           <Text variant="headline" numberOfLines={1}>
             {benefit.name}
@@ -66,10 +63,6 @@ const createStyles = (theme: Theme) =>
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.separator,
-    },
-    leading: {
-      width: 32,
-      alignItems: 'center',
     },
     middle: {
       flex: 1,

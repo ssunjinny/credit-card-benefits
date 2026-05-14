@@ -42,6 +42,7 @@
       }
     ],
     "no-debugger": "error",
+    "unicorn/no-array-sort": "off",
     "no-restricted-imports": [
       "error",
       {

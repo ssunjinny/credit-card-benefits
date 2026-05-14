@@ -201,9 +201,6 @@ const CategoryPicker = ({ kind, value, onChange }: CategoryPickerProps) => {
             style={[styles.categoryRow, !isLast && styles.divider]}
             scaleOnPress={false}
           >
-            <View style={styles.categoryLeading}>
-              <Icon name={option.symbol} size={20} tone="signal" />
-            </View>
             <Text variant="body" style={styles.categoryLabel}>
               {option.label}
             </Text>
@@ -280,10 +277,6 @@ const createStyles = (theme: Theme) =>
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.separator,
-    },
-    categoryLeading: {
-      width: 28,
-      alignItems: 'center',
     },
     categoryLabel: {
       flex: 1,

@@ -60,9 +60,14 @@ export const signInWithEmail = async (email: string, password: string) => {
   if (error) throw error
 }
 
-export const signUpWithEmail = async (email: string, password: string) => {
-  const { error } = await supabase.auth.signUp({ email, password })
+export type SignUpResult = {
+  needsEmailConfirmation: boolean
+}
+
+export const signUpWithEmail = async (email: string, password: string): Promise<SignUpResult> => {
+  const { data, error } = await supabase.auth.signUp({ email, password })
   if (error) throw error
+  return { needsEmailConfirmation: data.session === null }
 }
 
 export const signOut = async () => {

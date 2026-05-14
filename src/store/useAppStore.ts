@@ -125,8 +125,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   clear: () => set({ logs: [], items: [], isLoaded: false }),
 
   completeOnboarding: async () => {
-    await storage.setItem(ONBOARDING_KEY, 'true')
     set({ hasOnboarded: true })
+    await storage.setItem(ONBOARDING_KEY, 'true')
   },
 
   addLog: async (input) => {

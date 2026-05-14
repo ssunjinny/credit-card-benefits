@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native'
 
 import { useTheme, type Theme } from '@/features/theme'
 import { formatCurrency } from '@/lib/currency'
-import { Card, Icon, Text } from '@/ui'
+import { Card, Text } from '@/ui'
 
 import { ITEM_CATEGORIES, type CategoryMeta } from '../constants'
 import type { CategoryTotal, NetWorthItemKind } from '../types'
@@ -65,9 +65,6 @@ const BreakdownSection = ({ title, rows }: BreakdownSectionProps) => {
       <Card padded={false}>
         {rows.map(({ meta, total }, index) => (
           <View key={meta.key} style={[styles.row, index < rows.length - 1 && styles.divider]}>
-            <View style={styles.leading}>
-              <Icon name={meta.symbol} size={20} tone="signal" />
-            </View>
             <Text variant="body" style={styles.label}>
               {meta.label}
             </Text>
@@ -103,10 +100,6 @@ const createStyles = (theme: Theme) =>
     divider: {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: theme.colors.separator,
-    },
-    leading: {
-      width: 28,
-      alignItems: 'center',
     },
     label: {
       flex: 1,

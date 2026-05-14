@@ -9,7 +9,7 @@ import { HeroCard } from '@/features/benefits/components/HeroCard'
 import { StatChips } from '@/features/benefits/components/StatChips'
 import { useTheme, type Theme } from '@/features/theme'
 import { useAppStore } from '@/store/useAppStore'
-import { Card, Icon, Pressable, Screen, Text } from '@/ui'
+import { Card, Icon, Screen, Text } from '@/ui'
 
 const HomeScreen = () => {
   const theme = useTheme()
@@ -31,12 +31,6 @@ const HomeScreen = () => {
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.topBar}>
-          <Pressable onPress={() => router.push('/settings')} hitSlop={12} scaleOnPress={false}>
-            <Icon name="gearshape" size={22} tone="tertiary" />
-          </Pressable>
-        </View>
-
         <HeroCard
           totalCaptured={overview.totalCaptured}
           annualFee={overview.annualFee}
@@ -92,13 +86,9 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     content: {
       paddingHorizontal: theme.spacing.lg,
+      paddingTop: theme.spacing.lg,
       paddingBottom: theme.spacing.xxxl,
       gap: theme.spacing.md,
-    },
-    topBar: {
-      flexDirection: 'row',
-      justifyContent: 'flex-end',
-      paddingTop: theme.spacing.sm,
     },
     spacer: {
       height: theme.spacing.xs,

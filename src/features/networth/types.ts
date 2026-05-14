@@ -6,6 +6,8 @@ export type NetWorthItemCategory =
   | 'crypto'
   | 'real_estate'
   | 'vehicle'
+  | 'electronics'
+  | 'furniture'
   | 'other_asset'
   | 'credit_card'
   | 'mortgage'

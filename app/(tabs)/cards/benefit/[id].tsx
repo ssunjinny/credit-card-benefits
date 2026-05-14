@@ -25,7 +25,7 @@ const BenefitDetailScreen = () => {
   }
 
   const { benefit, progress } = result
-  const logs = filterLogsForBenefit(allLogs, benefit.id).toSorted((a, b) =>
+  const logs = [...filterLogsForBenefit(allLogs, benefit.id)].sort((a, b) =>
     b.date.localeCompare(a.date),
   )
 

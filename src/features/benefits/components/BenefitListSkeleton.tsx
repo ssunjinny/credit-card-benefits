@@ -15,7 +15,6 @@ export const BenefitListSkeleton = () => {
       <Card padded={false}>
         {Array.from({ length: SKELETON_ROW_COUNT }).map((_, index) => (
           <View key={index} style={[styles.row, index < SKELETON_ROW_COUNT - 1 && styles.divider]}>
-            <Skeleton width={28} height={28} radius={theme.radii.sm} />
             <View style={styles.middle}>
               <Skeleton width="60%" height={14} />
               <Skeleton width="40%" height={12} />
