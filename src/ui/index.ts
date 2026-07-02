@@ -13,12 +13,6 @@ export type { ButtonProps, ButtonVariant } from './Button'
 export { Icon } from './Icon'
 export type { IconProps, IconTone } from './Icon'
 
-export { ProgressBar } from './ProgressBar'
-export type { ProgressBarProps } from './ProgressBar'
-
-export { StatusBadge } from './StatusBadge'
-export type { StatusBadgeProps } from './StatusBadge'
-
 export { Skeleton } from './Skeleton'
 export type { SkeletonProps } from './Skeleton'
 

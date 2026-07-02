@@ -3,12 +3,9 @@ import { Alert, Linking, ScrollView, StyleSheet, View } from 'react-native'
 import { useRouter } from 'expo-router'
 import * as Haptics from 'expo-haptics'
 
-import { ANNUAL_FEE } from '@/features/benefits'
 import { themes, useSetTheme, useTheme, type Theme } from '@/features/theme'
 import { deleteAccount, signOut, useUser } from '@/lib/auth'
 import { PRIVACY_POLICY_URL, TERMS_URL } from '@/lib/constants'
-import { formatCurrency } from '@/lib/currency'
-import { currentYear } from '@/lib/date'
 import { Card, Icon, Pressable, Screen, Text } from '@/ui'
 
 const SettingsScreen = () => {
@@ -39,7 +36,7 @@ const SettingsScreen = () => {
   const onDeleteAccount = () => {
     Alert.alert(
       'Delete your account?',
-      'This permanently erases your benefit captures and net worth entries. This cannot be undone.',
+      'This permanently erases your net worth entries. This cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -64,13 +61,6 @@ const SettingsScreen = () => {
   return (
     <Screen edges={['bottom']}>
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-        <Section label="Card">
-          <Card padded={false}>
-            <Row label="Annual fee" value={formatCurrency(ANNUAL_FEE)} />
-            <Row label="Year" value={String(currentYear())} isLast />
-          </Card>
-        </Section>
-
         <Section label="Appearance">
           <Card padded={false}>
             <Pressable onPress={() => router.push('/settings/theme')} scaleOnPress={false}>

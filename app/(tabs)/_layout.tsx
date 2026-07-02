@@ -39,15 +39,6 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="cards"
-        options={{
-          title: 'Cards',
-          tabBarIcon: ({ color, size }) => (
-            <TabIcon name="creditcard.fill" color={color} size={size} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',

@@ -26,22 +26,21 @@ src/
 ├── app/                     # Expo Router screens (file-based routing)
 │   ├── _layout.tsx
 │   ├── index.tsx
-│   ├── benefit/
-│   │   └── [id].tsx
-│   ├── log/
-│   │   └── [benefitId].tsx
+│   ├── networth/
+│   │   ├── index.tsx
+│   │   ├── [id].tsx
+│   │   └── log/[id].tsx
 │   └── settings/
 │       ├── index.tsx
 │       └── theme.tsx
 │
 ├── features/                # Domain code, organized by feature
-│   ├── benefits/
+│   ├── networth/
 │   │   ├── components/      # Components used ONLY by this feature
 │   │   ├── hooks/
-│   │   ├── utils/
+│   │   ├── utils.ts
 │   │   ├── types.ts
 │   │   └── constants.ts
-│   ├── logs/
 │   └── theme/               # The theme system (paired with UI skill)
 │
 ├── ui/                      # Generic, design-system primitives only
@@ -74,14 +73,14 @@ src/
 
 ## File naming
 
-| Kind       | Convention                   | Example                                          |
-| ---------- | ---------------------------- | ------------------------------------------------ |
-| Components | `PascalCase.tsx`             | `BenefitRow.tsx`                                 |
-| Hooks      | `useCamelCase.ts`            | `useBenefitProgress.ts`                          |
-| Utilities  | `camelCase.ts`               | `currency.ts`                                    |
-| Types      | `types.ts` (per feature)     | `features/benefits/types.ts`                     |
-| Constants  | `constants.ts` (per feature) | `features/benefits/constants.ts`                 |
-| Variants   | dot-suffixed                 | `BenefitRow.skeleton.tsx`, `BenefitRow.test.tsx` |
+| Kind       | Convention                   | Example                                            |
+| ---------- | ---------------------------- | -------------------------------------------------- |
+| Components | `PascalCase.tsx`             | `NetWorthRow.tsx`                                  |
+| Hooks      | `useCamelCase.ts`            | `useNetWorth.ts`                                   |
+| Utilities  | `camelCase.ts`               | `currency.ts`                                      |
+| Types      | `types.ts` (per feature)     | `features/networth/types.ts`                       |
+| Constants  | `constants.ts` (per feature) | `features/networth/constants.ts`                   |
+| Variants   | dot-suffixed                 | `NetWorthRow.skeleton.tsx`, `NetWorthRow.test.tsx` |
 
 ---
 
@@ -104,24 +103,23 @@ import { useTheme } from '@/features/theme'
 import { Text, Pressable } from '@/ui'
 import { formatCurrency } from '@/lib/currency'
 
-import { useBenefitProgress } from './useBenefitProgress'
+import { centsToDollars } from './utils'
 
-type BenefitRowProps = {
-  benefit: Benefit
+type NetWorthRowProps = {
+  item: NetWorthItem
   onPress: () => void
 }
 
 const PRESS_FEEDBACK_SCALE = 0.97
 
-export const BenefitRow = ({ benefit, onPress }: BenefitRowProps) => {
+export const NetWorthRow = ({ item, onPress }: NetWorthRowProps) => {
   const theme = useTheme()
   const styles = useMemo(() => createStyles(theme), [theme])
-  const progress = useBenefitProgress(benefit.id)
 
   return (
     <Pressable onPress={onPress} style={styles.container}>
-      <Text>{benefit.name}</Text>
-      <Text>{formatCurrency(progress.used)}</Text>
+      <Text>{item.name}</Text>
+      <Text>{formatCurrency(centsToDollars(item.amountCents))}</Text>
     </Pressable>
   )
 }
@@ -151,29 +149,29 @@ const createStyles = (theme: Theme) =>
 **Good** — API visible at a glance:
 
 ```typescript
-export const BenefitRow = ({ benefit, onPress, isSelected }: BenefitRowProps) => {
+export const NetWorthRow = ({ item, onPress, isSelected }: NetWorthRowProps) => {
 ```
 
 **Bad** — props is opaque:
 
 ```typescript
-export const BenefitRow = (props: BenefitRowProps) => {
-  const { benefit, onPress, isSelected } = props
+export const NetWorthRow = (props: NetWorthRowProps) => {
+  const { item, onPress, isSelected } = props
 ```
 
 ### One component per file
 
 One file = one exported component. The single exception: tiny private subcomponents used ONLY within the file, kept above the main component. If a private subcomponent ever needs reuse, it gets its own file. Do not preemptively extract.
 
-In `BenefitRow.tsx`, a private `StatusBadge` may live above the exported `BenefitRow`:
+In `NetWorthRow.tsx`, a private `CategoryTag` may live above the exported `NetWorthRow`:
 
 ```typescript
-const StatusBadge = ({ status }: { status: BenefitStatus }) => {
+const CategoryTag = ({ category }: { category: NetWorthItemCategory }) => {
   return <View>{ /* ... */ }</View>
 }
 
-export const BenefitRow = ({ benefit }: BenefitRowProps) => {
-  return <Pressable><StatusBadge status={benefit.status} /></Pressable>
+export const NetWorthRow = ({ item }: NetWorthRowProps) => {
+  return <Pressable><CategoryTag category={item.category} /></Pressable>
 }
 ```
 
@@ -234,13 +232,13 @@ Static styles in `createStyles`. Dynamic styles inline. Never the reverse.
 
 ### One hook per file
 
-In `hooks/useBenefitProgress.ts`:
+In `hooks/useNetWorth.ts`:
 
 ```typescript
-export const useBenefitProgress = (benefitId: string) => {
-  const logs = useAppStore((state) => state.logs)
-  const used = sumLogsForBenefit(logs, benefitId)
-  return { used, cap, percentage, status }
+export const useNetWorth = () => {
+  const items = useAppStore((state) => state.items)
+  const summary = summarizeNetWorth(items)
+  return { totalAssetsCents, totalLiabilitiesCents, netCents }
 }
 ```
 
@@ -251,13 +249,13 @@ Arrays only for tuples with an obvious order (like `[value, setValue]`). Objects
 **Bad** — what's the order again?
 
 ```typescript
-const [used, cap, percentage] = useBenefitProgress(id)
+const [totalAssetsCents, totalLiabilitiesCents, netCents] = useNetWorth()
 ```
 
 **Good**:
 
 ```typescript
-const { used, cap, percentage } = useBenefitProgress(id)
+const { totalAssetsCents, totalLiabilitiesCents, netCents } = useNetWorth()
 ```
 
 ### Extract logic into hooks aggressively
@@ -272,7 +270,7 @@ The order to reach for state, top to bottom:
 
 1. **Local state (`useState`)** — the first choice, always. Most state is local.
 2. **URL/route state (Expo Router params)** — for state that should survive navigation, support deep links, or be shareable.
-3. **Global store (Zustand)** — for genuinely app-wide state: logs, settings, theme.
+3. **Global store (Zustand)** — for genuinely app-wide state: items, snapshots, theme.
 4. **AsyncStorage** — persistence only. Wrapped behind the store, never accessed from components.
 
 **Components never know AsyncStorage exists.** The store handles persistence; components read from the store.
@@ -282,31 +280,28 @@ The order to reach for state, top to bottom:
 ```typescript
 type AppStore = {
   // STATE
-  logs: BenefitLog[]
-  themeKey: ThemeKey
+  items: NetWorthItem[]
+  snapshots: NetWorthSnapshot[]
   isLoaded: boolean
 
   // ACTIONS — verbs, mutate state
-  addLog: (log: BenefitLog) => void
-  deleteLog: (id: string) => void
-  setTheme: (key: ThemeKey) => void
-
-  // QUERIES — derived data, no mutation
-  getBenefitProgress: (benefitId: string) => Progress
+  addItem: (input: AddItemInput) => Promise<NetWorthItem>
+  deleteItem: (id: string) => Promise<void>
+  logSnapshot: (itemId: string, input: LogSnapshotInput) => Promise<void>
 }
 ```
 
-State, actions, and queries each get their own labeled section. Future-you will thank you.
+State and actions each get their own labeled section. Future-you will thank you.
 
 ### Always use selectors
 
 ```typescript
 // BAD — re-renders when ANY state changes
 const store = useAppStore()
-const logs = store.logs
+const items = store.items
 
-// GOOD — re-renders only when logs change
-const logs = useAppStore((state) => state.logs)
+// GOOD — re-renders only when items change
+const items = useAppStore((state) => state.items)
 ```
 
 This matters more in React Native than web because re-renders are more expensive on mobile.
@@ -322,12 +317,12 @@ Use `type` for all app code. It is more flexible (unions, intersections, mapped 
 ### Discriminated unions for variants
 
 ```typescript
-type Benefit =
-  | { category: 'fixed'; annualCap: number; resetType: 'jan1' | 'per_use' }
-  | { category: 'soft'; annualCap: null; resetType: 'jan1' }
+type NetWorthItem =
+  | { kind: 'asset'; category: AssetCategory; amountCents: number }
+  | { kind: 'liability'; category: LiabilityCategory; amountCents: number }
 ```
 
-The impossible state (a soft benefit with a cap) is now literally not representable. Better than runtime checks.
+The impossible state (an asset with a `mortgage` category) is now literally not representable. Better than runtime checks.
 
 ### Never `any`. Sometimes `unknown`.
 
@@ -373,7 +368,7 @@ Use `@/` for any cross-feature import. Use relative (`./`, `../`) only for sibli
 ```typescript
 // GOOD
 import { useTheme } from '@/features/theme'
-import { useBenefitProgress } from './useBenefitProgress'
+import { useNetWorth } from './useNetWorth'
 
 // BAD — never reach across features with relative paths
 import { useTheme } from '../../theme/ThemeProvider'
@@ -402,19 +397,19 @@ Do NOT barrel-export everything everywhere. Tree-shaking gets weird and circular
 ### Loading, empty, error — all three, every screen
 
 ```typescript
-if (!isLoaded) return <BenefitListSkeleton />
-if (logs.length === 0) return <BenefitListEmpty />
-return <BenefitList logs={logs} />
+if (!isLoaded) return <NetWorthSkeleton />
+if (items.length === 0) return <NetWorthEmpty />
+return <NetWorthList items={items} />
 ```
 
 ### Defensive defaults at boundaries, not everywhere
 
 ```typescript
 // BAD — explodes if note is undefined
-<Text>{log.note.toUpperCase()}</Text>
+<Text>{snapshot.note.toUpperCase()}</Text>
 
 // GOOD — handles edge case at the data boundary
-<Text>{log.note?.toUpperCase() ?? ''}</Text>
+<Text>{snapshot.note?.toUpperCase() ?? ''}</Text>
 ```
 
 But DO NOT sprinkle `?.` defensively inside well-typed business logic. Use it at boundaries (data crossing into the component). Inside typed code, optional chaining is a smell that types are too loose.
@@ -466,11 +461,11 @@ transform: [{ scale: PRESS_FEEDBACK_SCALE }]
 
 ```typescript
 // BAD — comment masks unclear logic
-// only count logs from the current year
-const valid = logs.filter((l) => new Date(l.date).getFullYear() === currentYear)
+// only sum the asset items
+const total = items.filter((i) => i.kind === 'asset').reduce((sum, i) => sum + i.amountCents, 0)
 
 // GOOD — extract; the function name is the comment
-const logsThisYear = filterLogsForYear(logs, currentYear)
+const totalAssetsCents = sumItemsForKind(items, 'asset')
 ```
 
 ### The two narrow exceptions

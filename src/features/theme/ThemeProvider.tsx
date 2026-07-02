@@ -20,7 +20,7 @@ type ThemeContextValue = {
   isReady: boolean
 }
 
-const STORAGE_KEY = 'amex_tracker_theme'
+const STORAGE_KEY = 'networthmaxxing_theme'
 const DEFAULT_KEY: ThemeKey = 'light'
 
 const ThemeContext = createContext<ThemeContextValue | null>(null)
