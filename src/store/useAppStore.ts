@@ -1,8 +1,5 @@
 import { create } from 'zustand'
 
-import { BENEFITS, computeBenefitProgress, findBenefit } from '@/features/benefits'
-import type { BenefitWithProgress } from '@/features/benefits'
-import type { BenefitLog } from '@/features/logs/types'
 import type {
   NetWorthItem,
   NetWorthItemCategory,
@@ -13,15 +10,7 @@ import { today } from '@/lib/date'
 import { storage } from '@/lib/storage'
 import { supabase } from '@/lib/supabase'
 
-const ONBOARDING_KEY = 'amex_tracker_onboarded'
-
-type BenefitLogRow = {
-  id: string
-  benefit_id: string
-  log_date: string
-  value_amount_cents: number
-  note: string | null
-}
+const ONBOARDING_KEY = 'networthmaxxing_onboarded'
 
 type NetWorthItemRow = {
   id: string
@@ -39,13 +28,6 @@ type NetWorthSnapshotRow = {
   captured_at: string
   note: string | null
   created_at: string
-}
-
-type AddLogInput = {
-  benefitId: string
-  date: string
-  valueAmountCents: number
-  note: string | null
 }
 
 type AddItemInput = {
@@ -70,7 +52,6 @@ type UpdateSnapshotPatch = Partial<{
 }>
 
 type AppStore = {
-  logs: BenefitLog[]
   items: NetWorthItem[]
   snapshots: NetWorthSnapshot[]
   hasOnboarded: boolean
@@ -81,9 +62,6 @@ type AppStore = {
   clear: () => void
   completeOnboarding: () => Promise<void>
 
-  addLog: (input: AddLogInput) => Promise<void>
-  deleteLog: (id: string) => Promise<void>
-
   addItem: (input: AddItemInput) => Promise<NetWorthItem>
   updateItem: (id: string, patch: UpdateItemPatch) => Promise<void>
   deleteItem: (id: string) => Promise<void>
@@ -91,18 +69,7 @@ type AppStore = {
   logSnapshot: (itemId: string, input: LogSnapshotInput) => Promise<void>
   updateSnapshot: (id: string, patch: UpdateSnapshotPatch) => Promise<void>
   deleteSnapshot: (id: string) => Promise<void>
-
-  getBenefitProgress: (id: string) => BenefitWithProgress | null
-  getAllBenefitsWithProgress: () => BenefitWithProgress[]
 }
-
-const logFromRow = (row: BenefitLogRow): BenefitLog => ({
-  id: row.id,
-  benefitId: row.benefit_id,
-  date: row.log_date,
-  valueAmountCents: row.value_amount_cents,
-  note: row.note,
-})
 
 const itemFromRow = (row: NetWorthItemRow): NetWorthItem => ({
   id: row.id,
@@ -129,8 +96,7 @@ const requireUserId = async (): Promise<string> => {
   return id
 }
 
-export const useAppStore = create<AppStore>((set, get) => ({
-  logs: [],
+export const useAppStore = create<AppStore>((set) => ({
   items: [],
   snapshots: [],
   hasOnboarded: false,
@@ -143,12 +109,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   loadForUser: async (userId) => {
     set({ isLoaded: false })
-    const [logsRes, itemsRes, snapshotsRes] = await Promise.all([
-      supabase
-        .from('benefit_logs')
-        .select('id, benefit_id, log_date, value_amount_cents, note')
-        .eq('user_id', userId)
-        .order('log_date', { ascending: false }),
+    const [itemsRes, snapshotsRes] = await Promise.all([
       supabase
         .from('net_worth_items')
         .select('id, name, kind, category, amount_cents, updated_at')
@@ -160,46 +121,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
         .eq('user_id', userId)
         .order('captured_at', { ascending: false }),
     ])
-    if (logsRes.error) throw logsRes.error
     if (itemsRes.error) throw itemsRes.error
     if (snapshotsRes.error) throw snapshotsRes.error
     set({
-      logs: (logsRes.data ?? []).map(logFromRow),
       items: (itemsRes.data ?? []).map(itemFromRow),
       snapshots: (snapshotsRes.data ?? []).map(snapshotFromRow),
       isLoaded: true,
     })
   },
 
-  clear: () => set({ logs: [], items: [], snapshots: [], isLoaded: false }),
+  clear: () => set({ items: [], snapshots: [], isLoaded: false }),
 
   completeOnboarding: async () => {
     set({ hasOnboarded: true })
     await storage.setItem(ONBOARDING_KEY, 'true')
-  },
-
-  addLog: async (input) => {
-    const userId = await requireUserId()
-    const { data, error } = await supabase
-      .from('benefit_logs')
-      .insert({
-        user_id: userId,
-        benefit_id: input.benefitId,
-        log_date: input.date,
-        value_amount_cents: input.valueAmountCents,
-        note: input.note,
-      })
-      .select('id, benefit_id, log_date, value_amount_cents, note')
-      .single()
-    if (error) throw error
-    const log = logFromRow(data)
-    set((s) => ({ logs: [log, ...s.logs] }))
-  },
-
-  deleteLog: async (id) => {
-    const { error } = await supabase.from('benefit_logs').delete().eq('id', id)
-    if (error) throw error
-    set((s) => ({ logs: s.logs.filter((l) => l.id !== id) }))
   },
 
   addItem: async (input) => {
@@ -305,19 +240,5 @@ export const useAppStore = create<AppStore>((set, get) => ({
     const { error } = await supabase.from('net_worth_snapshots').delete().eq('id', id)
     if (error) throw error
     set((s) => ({ snapshots: s.snapshots.filter((snap) => snap.id !== id) }))
-  },
-
-  getBenefitProgress: (id) => {
-    const benefit = findBenefit(id)
-    if (!benefit) return null
-    return { ...benefit, progress: computeBenefitProgress(benefit, get().logs) }
-  },
-
-  getAllBenefitsWithProgress: () => {
-    const logs = get().logs
-    return BENEFITS.map((benefit) => ({
-      ...benefit,
-      progress: computeBenefitProgress(benefit, logs),
-    }))
   },
 }))

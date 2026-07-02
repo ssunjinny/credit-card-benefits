@@ -97,7 +97,7 @@ const SignUpScreen = () => {
           <View style={styles.header}>
             <Text variant="title1">Create an account.</Text>
             <Text variant="callout" tone="secondary" style={styles.subtitle}>
-              Your benefits and net worth, synced everywhere you sign in.
+              Your net worth, synced everywhere you sign in.
             </Text>
           </View>
 

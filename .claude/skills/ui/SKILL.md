@@ -1,25 +1,25 @@
 ---
 name: ui
-description: Use this skill any time you're writing or modifying UI for the AMEX Platinum benefits tracker React Native app...
+description: Use this skill any time you're writing or modifying UI for the networthmaxxing net-worth (assets + liabilities) React Native app...
 ---
 
-# React Native iOS UI Skill — AMEX Tracker
+# React Native iOS UI Skill — networthmaxxing
 
-Use this skill any time you're writing or modifying UI for the AMEX Platinum benefits tracker app. This skill ensures the app feels like an extension of a luxury credit card — restrained, tactile, slightly precious — and supports a multi-theme system so the user can choose the mood that fits them.
+Use this skill any time you're writing or modifying UI for the networthmaxxing app — a personal net-worth tracker (assets + liabilities). This skill keeps the app feeling restrained, tactile, and premium, and supports a two-theme system (Light + Dark) so the user can choose the mood that fits them.
 
 ---
 
 ## Design intent
 
-This is not a budgeting app. It is a personal companion to a luxury credit card. The visual language draws from physical card design: brushed metal, embossed letterforms, deep matte finishes, thick cotton card stock. Open the app and it should feel the way pulling the card out of your wallet feels.
+This is a calm personal-finance app. The hero is the number. The visual language is premium and lightly tech: editorial whitespace, one restrained signal color, deep matte finishes. Open the app and your net worth should read instantly, with a quiet sense of progress.
 
 **References:**
 
 - Visual restraint: **Ramp** — one signal color, editorial whitespace, numbers as heroes
 - Friendly minimalism + soft motion: **Waymo** — rounded geometry, calm pacing, conversational status
-- Material spirit: AMEX Platinum / Centurion card itself — matte metals, embossed accents, no shine
+- Other touchstones: Linear, Vercel, Mercury, Polymarket, Cron
 
-**Emotional target:** the satisfaction of opening an envelope addressed to you. Quiet, certain, slightly indulgent.
+**Emotional target:** "you're building something, calmly." Quiet, certain, in control.
 
 ---
 
@@ -62,14 +62,14 @@ Same applies to `typography`, `spacing`, `radii`, `shadows`. All flow through `u
 
 ### Theme persistence
 
-- User's selected theme key is stored in AsyncStorage under `amex_tracker_theme`.
+- User's selected theme key is stored in AsyncStorage under `networthmaxxing_theme`.
 - Theme loads synchronously on app boot before any UI renders. Use `expo-splash-screen` to prevent flash-of-wrong-theme.
 - Default if no stored theme: `light`.
 - Settings screen has a theme picker with two preview tiles, each rendered with its canvas + accent swatches (no theme name labels).
 
 ---
 
-## Token contract (`src/theme/tokens.ts`)
+## Token contract (`src/features/theme/tokens.ts`)
 
 Every theme exports an object matching this shape. New themes just satisfy this contract.
 
@@ -197,13 +197,13 @@ export type Theme = {
 ## Color usage rules — apply to ALL themes
 
 1. **The signal color is sacred.** It appears ONLY in:
-   - The progress bar fill on the hero card
-   - Hero-level dollar amounts representing captured value
-   - The "Maxed" status badge on benefit rows
-   - The primary CTA button background
-   - The milestone moment ("$298 to break even" → "Break even reached")
+   - The hero net-worth number on the dashboard
+   - The primary CTA button background (e.g. "Add asset", "Log new value")
+   - The selected state in the category / theme picker (checkmark)
+   - A single positive emphasis moment (e.g. net worth up since last snapshot)
+   - One reserved slot
 
-   That's it. Five places, max. If you reach for a sixth, use a label color instead.
+   That's it. Five places, max. If you reach for a sixth, use a label color instead. Liabilities are NOT rendered in a vibrant danger color — use label colors; reserve `danger` for destructive actions.
 
 2. **Status colors (warning, danger) are extremely rare.** Maybe one per screen. Muted brick or amber, never vibrant. If you reach for them, ask whether a label would do.
 
@@ -362,16 +362,15 @@ export const motion = {
 - Reanimated 3 + Moti only. NEVER the legacy `Animated` API.
 - Springs for transforms; timing for fades only.
 - Hero number counts up on change (Moti `from`/`animate` with timing).
-- Progress bars fill with `springSoft`.
 - Button press: scale 0.97 with `springSnappy`.
 - List add/remove: Reanimated `LinearTransition` + `FadeIn`/`FadeOut`.
-- Milestones (break even, benefit maxed): single one-shot pulse on state change. Never continuously animate.
+- Positive emphasis (net worth up since last snapshot): single one-shot pulse on state change. Never continuously animate.
 
 ---
 
 ## Mandatory before writing any UI code
 
-1. Confirm `src/theme/` is fully set up: `tokens.ts`, all four theme files, `ThemeProvider.tsx`, `index.ts`. If not, build that infrastructure FIRST.
+1. Confirm `src/features/theme/` is fully set up: `tokens.ts`, both theme files (`themes/light.ts`, `themes/dark.ts`), `ThemeProvider.tsx`, `index.ts`. If not, build that infrastructure FIRST.
 
 2. Confirm dependencies installed:
    - `react-native-reanimated`
@@ -387,18 +386,21 @@ export const motion = {
 
 3. Wrap root layout in `<ThemeProvider>`. The provider:
    - Reads stored theme key from AsyncStorage on mount
-   - Falls back to `cream` if none stored
+   - Falls back to `light` if none stored
    - Holds theme in context
    - Exposes `useTheme()` and `useSetTheme()` hooks
    - Persists changes to AsyncStorage on every set
 
-4. State the screen's design intent in a top comment:
+4. If a screen needs a design-intent note, encode it as a `const` at the top of the file (never a comment — see the readability skill):
+   ```ts
+   const SCREEN_INTENT = {
+     name: 'Net Worth Dashboard',
+     hero: 'net worth (the number is the design)',
+     emotion: 'building something, calmly',
+     reference: 'Ramp homepage card + Waymo trip status',
+   } as const
    ```
-   // Screen: Home Dashboard
-   // Hero: total captured (the number is the design)
-   // Emotional target: "you're winning, calmly"
-   // Reference: Ramp homepage card + Waymo trip status
-   ```
+   Omit it entirely if the file's name and structure already tell the story.
 
 ---
 
@@ -413,14 +415,14 @@ export const motion = {
 - NEVER use a spinner where a skeleton matches the layout better.
 - NEVER use a full-screen modal where a bottom sheet feels more grounded.
 - NEVER omit empty / loading / error states.
-- NEVER write generic copy. "Add log" → "Capture a use." "67% utilized" → "$298 to break even."
+- NEVER write generic copy. Prefer number-led, plain-spoken lines (see copy guidelines).
 - NEVER use pure white surfaces or pure black backgrounds across any theme.
-- ALWAYS add haptics on meaningful actions (save, delete, milestone, error).
+- ALWAYS add haptics on meaningful actions (save, delete, error).
 - ALWAYS format currency with `Intl.NumberFormat`.
 - ALWAYS use `fontVariant: ['tabular-nums']` for numerics in lists/dashboards.
 - ALWAYS wrap screens in `SafeAreaView` from `react-native-safe-area-context`.
 - ALWAYS use Expo Router native stack with `headerLargeTitle: true` for primary screens.
-- ALWAYS verify a new screen renders correctly in ALL FOUR themes before considering it done.
+- ALWAYS verify a new screen renders correctly in BOTH themes before considering it done.
 
 ---
 
@@ -432,7 +434,7 @@ export const motion = {
 - Padding: `spacing.xl` all, `spacing.xxl` top
 - Radius: `radii.xl`
 - Shadow: `shadows.elevated`
-- Layout: caption label → hero number → progress bar (fill = `colors.signal.base`) → status sentence in `colors.signal.base`
+- Layout: caption label ("NET WORTH") → hero number in `colors.signal.base` → assets / liabilities totals footer in label colors
 
 ### List rows
 
@@ -446,7 +448,7 @@ export const motion = {
 
 - Height: 52pt
 - Background: `colors.signal.base`
-- Text color: theme-aware. On cream theme: `colors.surface.card` (cream-on-brass reads). On dark themes: `colors.surface.canvas` (canvas color on accent stays readable).
+- Text color: theme-aware. On light theme: `colors.surface.card`. On dark theme: `colors.surface.canvas` (canvas color on accent stays readable).
 - Radius: `radii.md`
 - Press: scale 0.97 + opacity 0.92 via `springSnappy`
 - Haptic: `Haptics.impactAsync(Medium)` on press
@@ -474,8 +476,8 @@ export const motion = {
 
 ### Theme picker (settings)
 
-- 2x2 grid of preview cards
-- Each card: theme name, mini hero number ("$597"), mini progress bar in that theme's signal color
+- Two preview tiles, side by side (Light + Dark)
+- Each tile: colored swatches (canvas / cardElevated / signal / label-primary). NO theme name labels.
 - Selected: `borderEmphasis` border + `signal.base` checkmark
 - Tap to apply with `Haptics.notificationAsync(Success)` + animated transition
 
@@ -485,12 +487,11 @@ export const motion = {
 
 The app talks like a calm financial advisor with a sense of humor — never a startup growth team, never a bank.
 
-- "Capture" instead of "log" for benefit uses
-- "On track" / "Ahead of pace" / "Break even reached" for status
-- "$298 to break even" not "67% utilized" for the hero
-- Number-led: "$597 captured this year" not "You've captured $597"
-- Section headers: "Captured", "In progress", "Untouched" — not "Maxed Out", "Partial Use", "Unused"
-- Empty state: warm and forward-looking — "Your first capture goes here. Start with the easy ones." not "No data."
+- Number-led: "$482,190 net worth" not "Your net worth is $482,190"
+- Plain labels: "Assets", "Liabilities", "Net worth"
+- Value updates read as "Logged {date}" for snapshots
+- Section headers uppercase: "ASSETS", "LIABILITIES"
+- Empty state: warm and forward-looking — "Add your first asset or liability." not "No data."
 
 ---
 
@@ -502,5 +503,5 @@ The app talks like a calm financial advisor with a sense of humor — never a st
 4. Press states defined for every interactive element
 5. Haptics on every state-mutating action
 6. Animations on user-caused state changes
-7. Top-comment stating emotional target and reference
-8. Verified to render correctly in all four themes
+7. Design intent encoded as a `const` if the file needs one (never a comment)
+8. Verified to render correctly in both themes

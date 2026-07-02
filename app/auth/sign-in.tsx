@@ -53,7 +53,7 @@ const SignInScreen = () => {
           <View style={styles.header}>
             <Text variant="title1">Welcome back.</Text>
             <Text variant="callout" tone="secondary" style={styles.subtitle}>
-              Sign in to see your assets, liabilities, and benefit captures.
+              Sign in to see your assets and liabilities.
             </Text>
           </View>
 
